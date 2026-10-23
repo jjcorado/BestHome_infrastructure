@@ -4,9 +4,11 @@ Pila decidida: Ubuntu 24.04 + CloudPanel (Nginx, PHP-FPM, MySQL) + n8n en Docker
 
 Arquitectura de referencia: [ARQUITECTURA-VPS.md](ARQUITECTURA-VPS.md). GTM: [../sitio-web/GTM.md](../sitio-web/GTM.md).
 
-- [ ] Contratar KVM 2. SSH solo con llave, fail2ban, firewall: 22, y 80/443 solo desde rangos de Cloudflare más la IP pública del VPS.
+- [x] KVM 2 contratado; SSH solo con llave, fail2ban y UFW (2026-10-23, ver [ESTADO-ACTUAL.md](ESTADO-ACTUAL.md)).
+- [ ] Cuando el dominio pase por Cloudflare: limitar 80/443 a los rangos de Cloudflare más la IP pública del VPS.
 - [ ] `/etc/hosts`: el dominio del sitio y `n8n.besthomeqro.com` resuelven a 127.0.0.1 (tráfico interno sin salir por Cloudflare).
-- [ ] Instalar CloudPanel y crear el sitio WordPress; activar Redis Object Cache para que los transients por IP (`bh_v_*`, `bh_lead_*`, `bh_attr_*`) no inflen `wp_options`.
+- [x] CloudPanel instalado y sitio de prueba creado (`nip.io`). El sitio definitivo con el dominio real es una migración nueva.
+- [ ] Crear el sitio definitivo en CloudPanel; activar Redis Object Cache para que los transients por IP (`bh_v_*`, `bh_lead_*`, `bh_attr_*`) no inflen `wp_options`.
 - [ ] Migrar archivos y base de datos; `wp search-replace` del dominio `.local` al final (respetando serializados).
 - [ ] `BH_WEBHOOK_LEAD_URL` puede quedar vacía mientras se levanta n8n: los leads esperan en `pending` (`last_error='config'`) sin caducar y se envían solos al configurarla.
 - [ ] `wp-config.php`: `WP_ENVIRONMENT_TYPE = 'production'`, `DISABLE_WP_CRON = true`, `BH_BEHIND_CF = true`, claves de Turnstile, EasyBroker y SMTP (`BH_SMTP_*`), `BH_WEBHOOK_LEAD_URL` (webhook temporal o Make hasta tener n8n), `BH_PRIVACY_VERSION`. Confirmar que **no** exista `BH_EB_STAGING`.

@@ -1,6 +1,6 @@
 # VPS Best Home: Cloudflare, Docker y CloudPanel (recomendación)
 
-Checklist de migración: [FASE2-MIGRACION.md](FASE2-MIGRACION.md). Evolution API: [../evolution-api/README.md](../evolution-api/README.md).
+Estado real hoy: [ESTADO-ACTUAL.md](ESTADO-ACTUAL.md). Checklist de migración: [FASE2-MIGRACION.md](FASE2-MIGRACION.md). Evolution API: [../evolution-api/README.md](../evolution-api/README.md).
 
 Base: Hostinger VPS KVM 2 (2 vCPU, 8 GB), Ubuntu 24.04, CloudPanel con WordPress, y Docker a instalar con n8n, CRM (EspoCRM es el candidato; en `prompt-base-besthome.md` aún figura "sin elegir") y Evolution API. Las cifras de RAM son estimaciones, no mediciones.
 
@@ -87,3 +87,11 @@ Conclusión: no cambies de panel. La prioridad es velocidad de WordPress y esta 
 7. Levantar Evolution API solo en red interna (o con IP/Access restringido); probar con un número dedicado.
 8. Elegir y levantar el CRM (EspoCRM) al final, cuando el flujo n8n ↔ leads ya funcione (endpoints `ref`/atribución de la Fase 3).
 9. Monitoreo ligero (UptimeRobot + alerta de disco/RAM) y revisión a las 2 semanas para decidir si hace falta KVM 4.
+
+## 6. Acuerdos finales (2026-10-23)
+- **Dominios separados:** `n8n.` 100 % tras Cloudflare Access (solo Javier). `api.` público, apunta al mismo n8n pero Nginx solo deja pasar `/webhook/`, con rate limit en el WAF y un secreto en cada webhook. Sustituye la idea de una excepción de Access para `/webhook/*`.
+- **Evolution Manager** en `evo.` tras Access con API key; n8n le habla por la red interna de Docker.
+- **CPU:** Evolution con `cpus: '0.5'` y `cpu_shares` bajo; WordPress debe ganar siempre.
+- **Tras instalar Docker**, revisar que el sitio siga abriendo (Docker modifica iptables).
+- **El túnel de Cloudflare no es obligatorio:** con el proxy (nube naranja) hay WAF y protección. Cloudflare exige el dominio real (no sirve `nip.io`).
+- Orden: snapshot, Cloudflare proxy, `real_ip` en Nginx, UFW/fail2ban/SSH con llave, backups externos, Docker con límites, reverse proxies en CloudPanel, Access en los subdominios admin.
