@@ -85,4 +85,3 @@ Detalle del flujo: [Flujo de sincronización](PLUGIN.md#flujo-de-sincronización
 ### Pendiente a futuro
 - Banderas de publicación por portal (qué propiedad sale en cada portal / feed).
 - Endpoint de inventario para n8n / IA (lectura del contrato sin metas privadas).
-- Endpoint de atribución por `ref` (`R-…`) para n8n: devuelve el lead y su atribución a partir del código del chat.
