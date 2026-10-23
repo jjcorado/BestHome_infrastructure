@@ -17,7 +17,7 @@ Documento vivo; describe lo que **falta**. Lo que ya existe está en [sitio-web/
 ## Antes de migrar (no es código)
 
 - [ ] Revisar las 3 propiedades marcadas como archivadas (IDs 20, 21, 22) y ponerlas en "Pública" si fueron pruebas.
-- [ ] Contenido del **Aviso de privacidad**: transferencia de datos a n8n y al CRM, cookies de atribución (`bh_attr`, GA, Meta), datos enviados a Google Ads y Meta (correo y teléfono con hash), periodo de retención de leads, cómo ejercer derechos ARCO.
+- [ ] Contenido del **Aviso de privacidad**: transferencia de datos a n8n y al CRM, cookies de atribución (`bh_attr`, GA, Meta), datos enviados a Google Ads y Meta (correo y teléfono con hash), periodo de retención de leads, cómo ejercer derechos ARCO. **Retención ya implementada en el código (2026-10-23):** WhatsApp sin confirmar 30 días; nombre, teléfono, correo y mensaje de formularios sincronizados 30 días tras `synced_at` (90 días si `failed`); el resto (referencia, atribución, propiedad, `crm_id`) se conserva sin datos personales. Al redactar el aviso, declarar esos plazos y subir `BH_PRIVACY_VERSION` en `leads.php`/`wp-config` (detalle en [sitio-web/LEADS.md](sitio-web/LEADS.md#retención-cron-diario-bh_eb_purge_leads)).
 - [ ] Imágenes del hero: escritorio (~1920×1080) y móvil (~1080×1600), < 250 KB cada una.
 - [ ] Personalizador: título y texto de apoyo del hero; mensaje de WhatsApp con `{operacion}`; textos de la banda de contacto.
 - [ ] Cambiar la contraseña de administrador por una propia (el día de la migración).
@@ -32,6 +32,7 @@ Checklist completo en [servidor/FASE2-MIGRACION.md](servidor/FASE2-MIGRACION.md)
 - Elegir CRM: [crm/ELECCION-CRM.md](crm/ELECCION-CRM.md)
 - Automatizaciones n8n: [n8n/README.md](n8n/README.md)
 - Evolution API: [evolution-api/README.md](evolution-api/README.md)
+- [ ] **Flujos n8n de leads** (el sitio ya está listo; falta n8n): formulario → [n8n/flujo-leads.md](n8n/flujo-leads.md); WhatsApp por `Ref:` → [n8n/whatsapp-ref.md](n8n/whatsapp-ref.md). Hasta que exista `BH_WEBHOOK_LEAD_URL`, los formularios esperan en `pending` (no caducan) y los de WhatsApp en `local` (se borran a los 30 días: no hace falta configurar nada para no perderlos, salvo que n8n tarde más de ese plazo).
 
 ---
 
