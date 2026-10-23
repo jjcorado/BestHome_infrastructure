@@ -1,0 +1,3 @@
+# API de catálogo para n8n / IA
+
+`GET /wp-json/besthome/v1/propiedades` (`plugins/besthome-easybroker-sync/includes/rest-catalogo.php`, clase `BH_EB_Rest_Catalogo`). Header `X-BH-Key` = `BH_API_KEY` (wp-config.php, mín. 24 caracteres; sin llave responde 503). Sin imágenes ni `bh_priv_*`; precio `null` si está oculto. Filtros: `operacion`, `tipo`, `zona`, `precio_min/max`, `recamaras_min`, `banos_min`, `construccion_min`, `terreno_min`, `amenidad`, `q`, `visibilidad` (`publica` por defecto | `privada` | `archivada` | `todas`), `por_pagina` (50, máx. 200), `pagina`. Cada item incluye `visibilidad` y `origen`.
