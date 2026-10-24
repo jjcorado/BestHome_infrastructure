@@ -7,6 +7,7 @@ Bitácora de cambios de **infraestructura y documentación** (los cambios de có
 - Se diseña el registro de recorridos (`crm/recorridos.md`: hoja móvil, entidades Recorrido y Parada) en lugar de «Propiedad mostrada», y se añaden reportes objetivo (CAC por rango de precio, demanda vs. oferta, propiedades estancadas) a `n8n/bigquery-looker.md`.
 - Principios de la capa de datos (independiente de la herramienta, inventario solo desde WordPress, n8n único integrador). Recorridos ya no consultan EasyBroker.
 - Recorridos rediseñados dentro del CRM (Recorrido → Visita, reacción de 3 niveles, comentarios abiertos); se descarta la hoja en wp-admin. Se añaden leads perdidos/sin respuesta, configuración de n8n (sin historial de ejecuciones exitosas, cargas paginadas), `etapas_log` por evento y decisión de propiedades que no se borran.
+- Analítica: primera atención y reasignación automáticas, catálogo `motivo_caida` (calidad del lead vs falla de venta), sin inventario por recorrido, métricas elegidas (sin LTV), y reglas de BigQuery para cierres (semana, precio y comisión redondeados). Pendiente de confirmar por Javier.
 
 ## 2026-10-23
 - Leads: `type` pasa a `formulario | whatsapp` (contexto en `payload.context`), `ref_code` UNIQUE, endpoints `GET /lead/{ref}` y `POST /lead/{ref}/crm` para n8n, y retención por cron (WhatsApp sin confirmar 30 días; datos personales de formularios sincronizados 30 días). Plugin: `includes/leads.php`, `bh_leads_db_version` 1.2. Ver `sitio-web/LEADS.md`.

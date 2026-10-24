@@ -5,6 +5,9 @@ Estado: **diseño (2026-10-24)**. Entidades del CRM: Lead, Contacto, Búsqueda (
 ## Leads perdidos y sin respuesta (también se analizan)
 Todo lead queda en el CRM y en BigQuery aunque no avance. Campos para eso: `fecha_primera_respuesta` (del cliente), `etapa` con valores `sin_respuesta` y `descartado`, y el origen completo (canal, campaña, `referrer` de first-touch). Permite ver, por ejemplo, qué fuente (anuncios, buscadores, asistentes de IA como ChatGPT) trae contactos que no contestan o que no encontraban lo que buscaban. La tasa de respuesta y el tiempo a la primera respuesta se calculan en BigQuery.
 
+## Atención y asignación
+`fecha_primera_atencion` (automática, ver bigquery-looker 2d) y registro de cada cambio de `asesor` asignado (webhook a n8n). El asesor no captura nada extra.
+
 ## Lead (hacer ya)
 `ref_code` (único), `canal_entrada` (formulario | whatsapp | manual | referido | llamada), UTM first y last (source, medium, campaign, term, content), `gclid`/`gbraid`/`wbraid`, `fbclid`, `_fbc`/`_fbp`, `ga_client_id`, `landing_page_first`, `eb_id_origen` (propiedad desde la que escribió), `fecha_primer_contacto`.
 

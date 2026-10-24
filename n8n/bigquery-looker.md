@@ -27,7 +27,7 @@ Región: elegir **una** y usarla en todos los datasets (no se puede cambiar; las
 Tablas del dataset `besthome_crm` (n8n inserta/actualiza; el CRM es la fuente):
 - `leads`: `ref_code`, `cliente_hash`, fecha, canal de entrada (formulario/whatsapp/manual/referido), utm y click ids first/last (`gclid`, `gbraid`, `wbraid`, `fbclid` son identificadores de clic de anuncio, no de contacto), `ga_client_id`, `eb_id` de la propiedad de origen.
 - `busquedas`: operación, tipo de inmueble, zonas, presupuesto, condición, características deseadas, etapa actual, motivo de caída (catálogo).
-- `etapas_log`: **una fila por cambio de etapa**, por evento (webhook de EspoCRM al cambiar `etapa`; n8n inserta la fila con su fecha). Una API REST solo devuelve el estado actual, así que esta historia no se puede reconstruir después: activarla desde el primer día. Activar también el registro de auditoría de EspoCRM en `etapa` (`busqueda_id`, etapa anterior/nueva, fecha). Se alimenta con el webhook de cambio de etapa del CRM; sin esto se pierde la historia.
+- `etapas_log` (eventos del embudo y de asignación): **una fila por cambio de etapa o de asesor asignado** (`tipo_evento` = etapa | asignacion), por evento (webhook de EspoCRM al cambiar `etapa`; n8n inserta la fila con su fecha). Una API REST solo devuelve el estado actual, así que esta historia no se puede reconstruir después: activarla desde el primer día. Activar también el registro de auditoría de EspoCRM en `etapa` (`busqueda_id`, etapa anterior/nueva, fecha). Se alimenta con el webhook de cambio de etapa del CRM; sin esto se pierde la historia.
 - `recorridos` y `visitas`: una fila por visita (`id_propiedad`, origen propia/otra, vista sí/no, reacción le gustó/neutral/no le gustó, zona, tipo, condición, precio y m² al momento; sin comentarios libres) y una fila por recorrido con su `interes_general`. Ver [../crm/recorridos.md](../crm/recorridos.md).
 - `cierres`: ver campos en el CRM. Solo valores de catálogo y números.
 
@@ -37,8 +37,8 @@ Reglas del flujo:
 - **Lista blanca**: n8n arma cada fila campo por campo; nunca copia `payload_json` ni el registro completo.
 - `cliente_hash` = HMAC-SHA256 del ID interno del contacto con un secreto que **solo vive en n8n** (credencial); permite contar clientes únicos y recompras sin poder reconstruir la identidad.
 - Texto libre (notas, motivo de caída «otro», conversaciones) **no sale del CRM**.
-- Fecha exacta de cierre, zona, fraccionamiento, precio y comisión sí; calle, número, nombre del dueño o constructor no.
-- Con pocos cierres, zona + fraccionamiento + precio + fecha puede reidentificar una operación: las vistas de Looker deben agrupar (por mes, rango de precio) y el dataset se comparte solo con cuentas propias.
+- **Qué sale de `cierres` (decisión de Javier a confirmar):** zona y fraccionamiento exactos (son la parte valiosa); semana de cierre (lunes de esa semana) y `dias_ciclo` calculado, no la fecha exacta; precio de cierre redondeado a $50,000 y comisión redondeada a $1,000 (el dato exacto vive en el CRM y en contabilidad); nunca calle, número, nombre del dueño o constructor. No se usan macrozonas ni rangos amplios, porque quitan el valor del análisis.
+- Con pocos cierres, fraccionamiento + precio + fecha podría señalar una operación a quien conozca el coto: por eso el redondeo, la semana y el acceso solo con cuentas propias. Los tableros que se compartan con asesores agrupan por mes y zona.
 - Se carga por **upsert por llave** (`ref_code`, `busqueda_id`, `cierre_id`) para poder corregir y para borrar a petición ARCO (`DELETE … WHERE cliente_hash = …`).
 - Los leads de WhatsApp usan el `GET /lead/{ref}` que n8n ya consulta (sin datos personales). Los clics sin mensaje (`local`, se borran a los 30 días) ya están en GA4 como `lead_generado`, no hace falta copiarlos.
 
@@ -52,6 +52,14 @@ Reglas del flujo:
 ## 2c. Qué guardar hoy que luego no se puede reconstruir
 Estado de etapas con fecha (`etapas_log`), foto diaria del catálogo (precio, estado, vistas), gasto diario por campaña (Ads/Meta), atribución first/last del lead (ya existe), fecha de la primera respuesta del cliente, asesor asignado en cada cambio, y fecha de publicación y de archivado de cada propiedad. Los reportes finales se definen después; estos datos se juntan desde ahora.
 Reportes de negocio a definir: ingresos por cliente y por asesor en el tiempo (comisión de la inmobiliaria por cierre; clientes recurrentes por `cliente_hash`), cierres por asesor y por periodo, y lead → cierre por fuente incluyendo los perdidos y sin respuesta.
+
+## 2d. Atención, asignación y pérdidas (decidido 2026-10-24)
+- **Primera atención** (`fecha_primera_atencion`): el tiempo entre que entra el lead y el primer mensaje o llamada del asesor es de las métricas que más pesan. No se le pide al asesor: cuando Evolution API (solo lectura) esté activa, n8n toma el primer mensaje saliente del chat con ese contacto; mientras tanto, se toma del primer cambio de etapa a «contactado».
+- **Intentos de contacto**: solo si salen solos (conteo de mensajes salientes antes de la primera respuesta del cliente). Si no, no se pide.
+- **Reasignación**: el mismo webhook registra cada cambio de asesor en `etapas_log`, para que la conversión y los tiempos por asesor no se distorsionen.
+- **Catálogo `motivo_caida`** (una opción, un toque, con «otro»): no contesta o datos falsos | presupuesto insuficiente | buscaba otra zona o producto | compró o rentó con otro | financiamiento no aprobado | se enfrió | otro. En las vistas se agrupa en *calidad del lead* (marketing) vs *falla de venta* (comercial).
+- **No se guarda inventario disponible por recorrido.** La foto diaria del catálogo ya permite reconstruir qué había en cualquier fecha (decenas o pocos cientos de filas por día: tamaño insignificante).
+- **Métricas que sí**: CAC por fuente y rango de precio, costo por lead calificado, tasa de «no contesta/datos falsos» por campaña, motivo de pérdida dominante por campaña, días lead → cierre por zona, conversión y ticket/comisión por asesor, macro-embudo lead → recorrido → cierre. **Recurrencia/LTV: no es reporte por ahora**; se conserva `cliente_hash` (no cuesta nada) por si los referidos se analizan después.
 
 ## 3. Unir origen con cierre
 `ref_code` viaja: clic/formulario → `lead_generado.lead_id` en GA4 → chat de WhatsApp (`Ref:`) → `Lead.ref_code` en el CRM → Búsqueda → Cierre. En BigQuery: `GA4 (lead_id) ⇄ leads (ref_code) ⇄ busquedas ⇄ cierres`, y `leads.gclid` ⇄ tabla de clics de Google Ads para campaña/palabra clave. La atribución first/last del propio payload del lead es la fuente principal; GA4 completa sesiones que no generaron lead.
