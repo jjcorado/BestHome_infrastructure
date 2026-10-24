@@ -22,7 +22,7 @@ Tablas del dataset `besthome_crm` (n8n inserta/actualiza; el CRM es la fuente):
 - `leads`: `ref_code`, `cliente_hash`, fecha, canal de entrada (formulario/whatsapp/manual/referido), utm y click ids first/last (`gclid`, `gbraid`, `wbraid`, `fbclid` son identificadores de clic de anuncio, no de contacto), `ga_client_id`, `eb_id` de la propiedad de origen.
 - `busquedas`: operación, tipo de inmueble, zonas, presupuesto, condición, características deseadas, etapa actual, motivo de caída (catálogo).
 - `etapas_log`: **una fila por cambio de etapa** (`busqueda_id`, etapa anterior/nueva, fecha). Se alimenta con el webhook de cambio de etapa del CRM; sin esto se pierde la historia.
-- `mostradas`: propiedades mostradas por búsqueda (`eb_id`, fecha, medio, reacción, motivo de descarte, zona y precio al momento).
+- `recorridos` y `paradas`: una fila por parada (`id_propiedad`, origen propia/otra, vista sí/no, reacción, motivo de descarte, zona, tipo, precio y m² al momento; sin comentarios libres). Ver [../crm/recorridos.md](../crm/recorridos.md).
 - `cierres`: ver campos en el CRM. Solo valores de catálogo y números.
 
 Reglas del flujo:
@@ -33,6 +33,13 @@ Reglas del flujo:
 - Con pocos cierres, zona + fraccionamiento + precio + fecha puede reidentificar una operación: las vistas de Looker deben agrupar (por mes, rango de precio) y el dataset se comparte solo con cuentas propias.
 - Se carga por **upsert por llave** (`ref_code`, `busqueda_id`, `cierre_id`) para poder corregir y para borrar a petición ARCO (`DELETE … WHERE cliente_hash = …`).
 - Los leads de WhatsApp usan el `GET /lead/{ref}` que n8n ya consulta (sin datos personales). Los clics sin mensaje (`local`, se borran a los 30 días) ya están en GA4 como `lead_generado`, no hace falta copiarlos.
+
+## 2b. Reportes objetivo
+- **CAC y retorno por rango de precio**: gasto (Google Ads/Meta por `campaign_id`) ÷ cierres, por rango de precio de cierre. Requiere que `utm_campaign` use la misma convención que el nombre/ID de campaña en Ads y que el auto-etiquetado de Google Ads esté activo (`gclid`).
+- **Embudo y días a cierre** por asesor, tipo de propiedad y fuente (`etapas_log`).
+- **Demanda vs. oferta**: búsquedas (CRM) y vistas de fichas (GA4 `view_item`) por zona/rango de precio contra el catálogo (foto diaria). Para filtros usados en el catálogo falta un evento (`search` está pendiente en [../sitio-web/GTM.md](../sitio-web/GTM.md)).
+- **Propiedades estancadas**: vistas y leads por `eb_id` contra días publicada → candidatas a ajuste de precio.
+- **Recorridos**: motivos de descarte, casas más mostradas vs. vendidas.
 
 ## 3. Unir origen con cierre
 `ref_code` viaja: clic/formulario → `lead_generado.lead_id` en GA4 → chat de WhatsApp (`Ref:`) → `Lead.ref_code` en el CRM → Búsqueda → Cierre. En BigQuery: `GA4 (lead_id) ⇄ leads (ref_code) ⇄ busquedas ⇄ cierres`, y `leads.gclid` ⇄ tabla de clics de Google Ads para campaña/palabra clave. La atribución first/last del propio payload del lead es la fuente principal; GA4 completa sesiones que no generaron lead.
@@ -63,4 +70,4 @@ Límites: contactos sin `Ref:` (llamada, recomendación) entran como origen `man
 7. Flujo n8n CRM → BigQuery (`etapas_log` primero, luego el resto) y foto diaria del catálogo.
 8. Vistas y tablero Looker: embudo canal → visita → lead → cita → cierre por campaña y zona; precios y comisión por zona/tipo/condición; qué características se venden; motivos de caída; consultas SEO por página.
 9. Meta Ads a BigQuery y conversiones offline ([conversiones-offline.md](conversiones-offline.md)), que reutilizan los mismos campos.
-10. Captura automática de «propiedades mostradas» (hoy manual).
+10. Hoja de recorrido móvil en el sitio ([../crm/recorridos.md](../crm/recorridos.md)); mientras tanto, las paradas se capturan en el CRM.
