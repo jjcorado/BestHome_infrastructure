@@ -37,8 +37,8 @@ Reglas del flujo:
 - **Lista blanca**: n8n arma cada fila campo por campo; nunca copia `payload_json` ni el registro completo.
 - `cliente_hash` = HMAC-SHA256 del ID interno del contacto con un secreto que **solo vive en n8n** (credencial); permite contar clientes únicos y recompras sin poder reconstruir la identidad.
 - Texto libre (notas, motivo de caída «otro», conversaciones) **no sale del CRM**.
-- **Qué sale de `cierres` (decisión de Javier a confirmar):** zona y fraccionamiento exactos (son la parte valiosa); semana de cierre (lunes de esa semana) y `dias_ciclo` calculado, no la fecha exacta; precio de cierre redondeado a $50,000 y comisión redondeada a $1,000 (el dato exacto vive en el CRM y en contabilidad); nunca calle, número, nombre del dueño o constructor. No se usan macrozonas ni rangos amplios, porque quitan el valor del análisis.
-- Con pocos cierres, fraccionamiento + precio + fecha podría señalar una operación a quien conozca el coto: por eso el redondeo, la semana y el acceso solo con cuentas propias. Los tableros que se compartan con asesores agrupan por mes y zona.
+- **Qué sale de `cierres`:** zona y fraccionamiento exactos, fecha de cierre, precio y comisión **exactos** (sin redondeo: los reportes financieros no deben tener margen de error); nunca calle, número, clave catastral, nombre del dueño o constructor. Al ejercerse un derecho ARCO se anonimiza la fila (ver [../crm/privacidad-arco.md](../crm/privacidad-arco.md)).
+- Con pocos cierres, fraccionamiento + precio + fecha podría señalar una operación a quien conozca el coto: la protección real son los controles de acceso y la anonimización por solicitud. Los tableros compartidos con asesores agrupan por mes y zona.
 - Se carga por **upsert por llave** (`ref_code`, `busqueda_id`, `cierre_id`) para poder corregir y para borrar a petición ARCO (`DELETE … WHERE cliente_hash = …`).
 - Los leads de WhatsApp usan el `GET /lead/{ref}` que n8n ya consulta (sin datos personales). Los clics sin mensaje (`local`, se borran a los 30 días) ya están en GA4 como `lead_generado`, no hace falta copiarlos.
 

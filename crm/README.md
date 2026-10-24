@@ -7,3 +7,4 @@ Reglas ya decididas ([../DECISIONES.md](../DECISIONES.md)): ventas, precio de ci
 Campos personalizados requeridos: `lead_id`, `ref_code`, `client_id` (`_ga`), `gclid` / `gbraid` / `wbraid`, `_fbc` / `_fbp`, UTMs first y last.
 
 Campos para analítica (BigQuery / Looker): [campos-analitica.md](campos-analitica.md).
+Baja de marketing, cancelación (ARCO) y bloqueo legal: [privacidad-arco.md](privacidad-arco.md).
