@@ -11,9 +11,11 @@ Móvil primero y **opcional**: lo único obligatorio es pegar los IDs de las cas
 - Las propiedades **no** se guardan como entidad en el CRM (decisión vigente). `id_propiedad` es solo texto; la copia al momento hace que el reporte sobreviva aunque la casa cambie de precio o se archive.
 
 ## De dónde salen los datos de la casa
+**Fuente única: la base de datos de WordPress** (CPT `propiedad`), que será el inventario principal cuando se deje EasyBroker. La hoja en wp-admin lee con `bh_prop()`; n8n lee con la API de catálogo (`GET /propiedades`, `X-BH-Key`).
+
 Orden de búsqueda al pegar un ID o un link:
 1. **Propia / ya sincronizada**: se busca `bh_eb_id` (`EB-` / `BH-`) en WordPress. Trae precio, ubicación, m², link a la ficha completa. Hoy el sitio ya tiene `bh_price`, `bh_construction`, `bh_lot`, `bh_location_name` (CONTRATO-DATOS).
-2. **De otra inmobiliaria**: si el ID no existe en el sitio, se marca `origen = otra inmobiliaria`, se guarda el ID externo y se pide una captura mínima (ubicación, precio, m², link). Posible mejora, **por verificar**: consultar la API de EasyBroker por ID si la cuenta lo permite.
+2. **De otra inmobiliaria**: si el ID no existe en el sitio, se marca `origen = otra inmobiliaria`, se guarda el ID externo y se pide una captura mínima (ubicación, precio, m², link). El ID externo (a menudo de EasyBroker) es solo texto de referencia: **no se consulta la API de EasyBroker**, que se dejará de usar.
 3. Un link del sitio o de EasyBroker se reduce al ID automáticamente.
 
 ## Interfaz (recomendación)

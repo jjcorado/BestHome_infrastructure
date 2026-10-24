@@ -5,6 +5,12 @@ Estado: **diseño listo (2026-10-24); ejecución por fases**. Campos del CRM y d
 ## Principio
 BigQuery es una **base de análisis sin identidad**: nunca recibe nombre, teléfono, correo, mensajes, notas libres, calle/número ni IP. El CRM conserva la identidad y la llave para volver a ella. Todo se une por `ref_code` y por un `cliente_hash` interno.
 
+## Principios de la capa de datos
+- **Independiente de la herramienta**: BigQuery y Looker son el destino actual, no el modelo. El esquema de las tablas propias (`besthome_crm`) se documenta y versiona aquí, con nombres `snake_case` y tipos estándar, para leerlo igual desde Python, Power BI o Metabase. La lógica de negocio va en vistas SQL estándar, no en campos calculados de Looker.
+- **Inventario desde WordPress**: toda foto o consulta de propiedades sale de la base de WordPress (API de catálogo), nunca de EasyBroker, que es temporal.
+- **Un solo integrador**: n8n, por API y con lista blanca. Sin lecturas directas a MySQL del CRM.
+- **Modular**: una fuente o tabla por flujo de n8n, documentada en su propio archivo; agregar una fuente no cambia las demás.
+
 ## 1. Qué conectar y cómo (todo al mismo dataset/región)
 | Fuente | Cómo | Cuándo |
 |---|---|---|
