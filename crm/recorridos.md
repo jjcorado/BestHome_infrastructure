@@ -1,39 +1,39 @@
-# Recorridos (hoja de recorrido y registro de propiedades mostradas)
+# Recorridos y visitas (registro de propiedades mostradas)
 
-Estado: **diseño (2026-10-24)**. Sustituye a «Propiedad mostrada» de [campos-analitica.md](campos-analitica.md). Datos hacia BigQuery: [../n8n/bigquery-looker.md](../n8n/bigquery-looker.md).
+Estado: **diseño (2026-10-24), revisado con las observaciones de Javier y de Gemini**. Sustituye a «Propiedad mostrada» de [campos-analitica.md](campos-analitica.md). Datos hacia BigQuery: [../n8n/bigquery-looker.md](../n8n/bigquery-looker.md).
 
 ## Principio de uso
-Móvil primero y **opcional**: lo único obligatorio es pegar los IDs de las casas. Todo lo demás tiene valor por defecto o es un toque. Meta: capturar un recorrido completo en menos de 2 minutos, y que la hoja sea más útil que la tabla manual de antes (precio y metros a la mano), para que el asesor la use por conveniencia y no por obligación.
+Todo ocurre **dentro del CRM** (EspoCRM, móvil): el asesor no sale a otra pantalla. Opcional y mínimo: lo único que se escribe a mano es el ID de la casa; precio, ubicación y metros los llena n8n. Una pantalla por visita con 3 toques como máximo.
 
-## Modelo (en el CRM, dos entidades)
-- **Recorrido** (hijo de Búsqueda, opcional): `fecha`, `asesor`, `comentario_general`, `estado` (programado | realizado | cancelado).
-- **Parada** (hija de Recorrido): `hora_visita`, `orden`, `id_propiedad` (texto), `origen` (propia | otra inmobiliaria), `vista` (sí | no), `motivo_no_vista` (cerrada | dueño no disponible | cliente canceló | otro), `reaccion` (le gustó | tal vez | no le gustó), `motivo_descarte` (precio | zona | tamaño | estado | distribución | otro), `comentario`, y **copia al momento**: ubicación (zona/fraccionamiento), tipo, condición, precio, m² construcción, m² terreno, `url_ficha`.
-- Las propiedades **no** se guardan como entidad en el CRM (decisión vigente). `id_propiedad` es solo texto; la copia al momento hace que el reporte sobreviva aunque la casa cambie de precio o se archive.
+## Modelo
+- **Recorrido** (hijo de Búsqueda; opcional): `fecha`, `asesor`, `ids_a_visitar` (texto, un ID o link por línea; opcional), `resultado` (quiere ofertar o apartar | lo piensa o consulta con su familia | quiere ver más opciones | sin interés), `comentario_general`.
+- **Visita** (hija de Recorrido; una por casa, terreno o departamento visitado): `hora_visita`, `id_propiedad` (texto), `origen` (propia | otra inmobiliaria), `vista` (sí | no), `motivo_no_vista` (cerrada | dueño no disponible | cliente canceló | otro), `reaccion` (**le gustó | neutral | no le gustó**), `comentario` (abierto; **sin catálogo de motivos**), y los campos que llena n8n: ubicación (zona y fraccionamiento), tipo, condición, precio, m² de construcción, m² de terreno, `url_ficha`, todos como copia al momento.
+- «Neutral» = comentó pero no descarta. No hay motivo de descarte estructurado por decisión de Javier; el porqué vive en el comentario, que no sale a BigQuery. Si más adelante hace falta medir motivos, se agrega un campo opcional sin romper nada.
+- Las propiedades no son entidad del CRM: `id_propiedad` es texto y la copia al momento hace que el reporte sobreviva si la casa cambia de precio o se archiva.
 
-## De dónde salen los datos de la casa
-**Fuente única: la base de datos de WordPress** (CPT `propiedad`), que será el inventario principal cuando se deje EasyBroker. La hoja en wp-admin lee con `bh_prop()`; n8n lee con la API de catálogo (`GET /propiedades`, `X-BH-Key`).
+## Cómo se captura (desde el celular, en el CRM)
+1. Desde la Búsqueda, crear el Recorrido y, si se quiere, pegar todos los IDs en `ids_a_visitar`: n8n crea las Visitas en orden, ya con precio, ubicación y metros. (Alternativa: «agregar visita» una por una con solo el ID.)
+2. Durante o después: abrir cada Visita y marcar vista sí/no y reacción; comentario opcional (sirve el dictado del teclado).
+3. Al final: `resultado` y comentario general del recorrido.
+Si el asesor no usa nada de esto, no pasa nada: el CRM y los reportes funcionan, solo falta ese detalle.
 
-Orden de búsqueda al pegar un ID o un link:
-1. **Propia / ya sincronizada**: se busca `bh_eb_id` (`EB-` / `BH-`) en WordPress. Trae precio, ubicación, m², link a la ficha completa. Hoy el sitio ya tiene `bh_price`, `bh_construction`, `bh_lot`, `bh_location_name` (CONTRATO-DATOS).
-2. **De otra inmobiliaria**: si el ID no existe en el sitio, se marca `origen = otra inmobiliaria`, se guarda el ID externo y se pide una captura mínima (ubicación, precio, m², link). El ID externo (a menudo de EasyBroker) es solo texto de referencia: **no se consulta la API de EasyBroker**, que se dejará de usar.
-3. Un link del sitio o de EasyBroker se reduce al ID automáticamente.
+## Quién llena los datos de la casa (n8n)
+EspoCRM dispara un webhook al guardar la Visita (o el Recorrido con IDs). n8n:
+1. Busca el ID en el inventario de WordPress: `GET /wp-json/besthome/v1/propiedades?q=<ID>&visibilidad=todas` (llave `X-BH-Key`). Hay que **confirmar que `q` encuentre `bh_eb_id`** y, si no, agregar el filtro `eb_id`.
+2. Si existe, escribe en la Visita precio, ubicación, tipo, condición, m², link a la ficha, `origen = propia`. La API no devuelve `bh_priv_*` (incluida la dirección exacta «ubicación o modelo»).
+3. Si no existe, deja `origen = otra inmobiliaria`; el asesor puede escribir esos datos en el comentario o en campos opcionales (precio, m²). El ID externo es solo referencia: no se consulta la API de EasyBroker.
 
-## Interfaz (recomendación)
-**Hoja de recorrido** como página móvil dentro de wp-admin (Propiedades › Recorridos), con capacidad propia tipo `bh_view_leads` (p. ej. `bh_view_recorridos`) y nonce, igual que la vista de Leads. Razón: toda la información de propiedades ya vive en WordPress y la regla del proyecto prohíbe exponer `bh_priv_*` en frontend; una página con sesión de asesor lo cumple. No usar enlaces con token público si muestran metas privadas.
-Flujo:
-1. **Antes**: desde la Búsqueda (botón/enlace con `busqueda_id`) o sin cliente. Pegar IDs/links, una por línea; fijar hora de cada parada (opcional). La hoja muestra una tarjeta por casa: hora, precio, ubicación, m² de construcción y terreno, link a la ficha completa, nota interna visible solo al asesor.
-2. **Durante**: toque en una parada para marcar *vista / no vista*; nada más es obligatorio.
-3. **Después**: por casa, 3 botones de reacción; si «no le gustó», chips con el motivo (un toque). Comentario libre opcional (sirve el dictado del teclado). Un comentario general del recorrido.
-4. **Guardar**: envía a n8n, que crea Recorrido y Paradas en el CRM con la Búsqueda. Sin cliente, queda «sin asignar» y se vincula después.
-Otra opción más barata para una primera versión: en el CRM, un campo de texto «IDs del recorrido» en la Búsqueda, y n8n crea las Paradas con los datos de la casa; el asesor las completa luego en el CRM. Menos código, peor experiencia móvil. **Decisión pendiente de Javier.**
-Descartado: Google Sheets (rápido, pero no se vincula al cliente ni a las propiedades).
+**Fuente única del inventario: la base de datos de WordPress** (CPT `propiedad`), que seguirá siendo el inventario cuando se deje EasyBroker.
+
+## IDs y propiedades que no se borran
+- Los `EB-XXXXXX` actuales son permanentes y **no cambian** al dejar EasyBroker; las propiedades nuevas usarán `BH-XX0000`. Por eso los IDs guardados en visitas, cierres y GA4 siguen válidos y las URLs no cambian por esto.
+- Una propiedad **nunca se borra, solo cambia de estado** (`publica | privada | archivada`). Así cualquier ID histórico se resuelve siempre. Pendiente: confirmar que el plugin impide el borrado definitivo (papelera y «eliminar permanentemente») a los roles que no sean administrador, y documentarlo en [../sitio-web/CONTRATO-DATOS.md](../sitio-web/CONTRATO-DATOS.md).
 
 ## Reportes que habilita
-- Por casa: fechas en que se mostró, a cuántos, reacciones y comentarios (sale del CRM; los comentarios libres no van a BigQuery).
-- Por cliente: qué se le enseñó, qué le gustó y por qué descartó (patrón de motivos → ajusta la búsqueda).
-- Global (BigQuery): motivos de descarte por zona/precio, casas más mostradas vs. vendidas, propias vs. de otras inmobiliarias, visitas realizadas por cierre.
+- Por casa: cuándo se mostró, a quién, cuántos la vieron, reacción y comentarios (CRM).
+- Por cliente: qué se le enseñó, qué le gustó y cuál fue el resultado del recorrido.
+- Global (BigQuery): reacción por zona, precio y condición; casas más mostradas vs. vendidas; visitas por cierre; resultado de recorridos por asesor.
 
-## Qué NO hacer (para que se use)
-- Sin campos obligatorios salvo el ID; sin captura de datos de la casa a mano si el ID existe.
-- Sin pantallas por casa con más de 3 toques.
-- No pedir que el asesor llene el CRM en el recorrido: la hoja es la herramienta; el CRM recibe los datos.
+## Descartado
+- Hoja móvil en wp-admin: obliga a cambiar de sistema en la calle.
+- Google Sheets: difícil de enlazar a la Búsqueda y de extraer de forma confiable.

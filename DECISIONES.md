@@ -8,3 +8,5 @@
 - Datos internos (ubicación o modelo, dueño, comisión, notas) se mantienen en WordPress, no en las notas de EasyBroker.
 - Rangos de precio del feed clasifican propiedades (uno por propiedad); la segmentación de personas por presupuesto se hace con audiencias.
 - Meta: anuncios a público en México sin categoría especial; campañas a público en EE. UU./Canadá requieren categoría de vivienda (separarlas).
+- Una propiedad nunca se borra: solo cambia de estado. Los `EB-` actuales son permanentes; las nuevas serán `BH-`. El inventario de referencia (visitas, cierres, reportes) es la base de WordPress, no EasyBroker.
+- Recorridos: se registran dentro del CRM (Recorrido → Visita), reacción en 3 niveles y comentarios abiertos; los datos de la casa los completa n8n por ID.

@@ -27,11 +27,13 @@ Región: elegir **una** y usarla en todos los datasets (no se puede cambiar; las
 Tablas del dataset `besthome_crm` (n8n inserta/actualiza; el CRM es la fuente):
 - `leads`: `ref_code`, `cliente_hash`, fecha, canal de entrada (formulario/whatsapp/manual/referido), utm y click ids first/last (`gclid`, `gbraid`, `wbraid`, `fbclid` son identificadores de clic de anuncio, no de contacto), `ga_client_id`, `eb_id` de la propiedad de origen.
 - `busquedas`: operación, tipo de inmueble, zonas, presupuesto, condición, características deseadas, etapa actual, motivo de caída (catálogo).
-- `etapas_log`: **una fila por cambio de etapa** (`busqueda_id`, etapa anterior/nueva, fecha). Se alimenta con el webhook de cambio de etapa del CRM; sin esto se pierde la historia.
-- `recorridos` y `paradas`: una fila por parada (`id_propiedad`, origen propia/otra, vista sí/no, reacción, motivo de descarte, zona, tipo, precio y m² al momento; sin comentarios libres). Ver [../crm/recorridos.md](../crm/recorridos.md).
+- `etapas_log`: **una fila por cambio de etapa**, por evento (webhook de EspoCRM al cambiar `etapa`; n8n inserta la fila con su fecha). Una API REST solo devuelve el estado actual, así que esta historia no se puede reconstruir después: activarla desde el primer día. Enable también el registro de auditoría de EspoCRM en `etapa` (`busqueda_id`, etapa anterior/nueva, fecha). Se alimenta con el webhook de cambio de etapa del CRM; sin esto se pierde la historia.
+- `recorridos` y `visitas`: una fila por visita (`id_propiedad`, origen propia/otra, vista sí/no, reacción le gustó/neutral/no le gustó, zona, tipo, condición, precio y m² al momento; sin comentarios libres) y una fila por recorrido con su `resultado`. Ver [../crm/recorridos.md](../crm/recorridos.md).
 - `cierres`: ver campos en el CRM. Solo valores de catálogo y números.
 
 Reglas del flujo:
+- **Eficiencia de n8n**: `EXECUTIONS_DATA_SAVE_ON_SUCCESS=none` (no guardar historial de ejecuciones correctas), cargas diarias paginadas por lotes (p. ej. 100) con marca `modified_at` y sin traer tablas completas. Con decenas de cierres el volumen es chico; esto evita sorpresas al crecer.
+- **Sin capa intermedia extra**: el CRM ya tiene su respaldo diario (base de datos + copia fuera del VPS), y BigQuery se reconstruye desde el CRM. Única tabla que no se reconstruye es `etapas_log` (y la foto del catálogo): protegerlas con exportación mensual a un bucket de Cloud Storage (CSV o Parquet), que también sirve como salida si algún día se migra de herramienta.
 - **Lista blanca**: n8n arma cada fila campo por campo; nunca copia `payload_json` ni el registro completo.
 - `cliente_hash` = HMAC-SHA256 del ID interno del contacto con un secreto que **solo vive en n8n** (credencial); permite contar clientes únicos y recompras sin poder reconstruir la identidad.
 - Texto libre (notas, motivo de caída «otro», conversaciones) **no sale del CRM**.
@@ -47,6 +49,10 @@ Reglas del flujo:
 - **Propiedades estancadas**: vistas y leads por `eb_id` contra días publicada → candidatas a ajuste de precio.
 - **Recorridos**: motivos de descarte, casas más mostradas vs. vendidas.
 
+## 2c. Qué guardar hoy que luego no se puede reconstruir
+Estado de etapas con fecha (`etapas_log`), foto diaria del catálogo (precio, estado, vistas), gasto diario por campaña (Ads/Meta), atribución first/last del lead (ya existe), fecha de la primera respuesta del cliente, asesor asignado en cada cambio, y fecha de publicación y de archivado de cada propiedad. Los reportes finales se definen después; estos datos se juntan desde ahora.
+Reportes de negocio a definir: ingresos por cliente y por asesor en el tiempo (comisión de la inmobiliaria por cierre; clientes recurrentes por `cliente_hash`), cierres por asesor y por periodo, y lead → cierre por fuente incluyendo los perdidos y sin respuesta.
+
 ## 3. Unir origen con cierre
 `ref_code` viaja: clic/formulario → `lead_generado.lead_id` en GA4 → chat de WhatsApp (`Ref:`) → `Lead.ref_code` en el CRM → Búsqueda → Cierre. En BigQuery: `GA4 (lead_id) ⇄ leads (ref_code) ⇄ busquedas ⇄ cierres`, y `leads.gclid` ⇄ tabla de clics de Google Ads para campaña/palabra clave. La atribución first/last del propio payload del lead es la fuente principal; GA4 completa sesiones que no generaron lead.
 Límites: contactos sin `Ref:` (llamada, recomendación) entran como origen `manual`/`referido`; un cliente con varios `ref_code` se une por `cliente_hash` y el origen es el del primero; consentimiento de cookies y bloqueadores dejan huecos.
@@ -61,6 +67,7 @@ Límites: contactos sin `Ref:` (llamada, recomendación) entran como origen `man
 - Aviso de privacidad (pendiente de redactar, ver [../PENDIENTES.md](../PENDIENTES.md)): añadir finalidad de **análisis estadístico y de mercado con información seudonimizada**, proveedores (Google Analytics, Google Cloud/BigQuery, Google Ads, Meta), cookies de atribución y plazos. Subir `BH_PRIVACY_VERSION`.
 - Seudonimizado no es anónimo: mientras el CRM guarde la correspondencia, siguen siendo datos personales para efectos legales; por eso hay borrado por `cliente_hash` y acceso restringido. Conviene revisión del texto con asesor legal.
 - No enviar a GA4 nombre, teléfono ni correo (prohibido por sus términos); `ref_code` es un código aleatorio y es válido.
+- Criterio práctico: no se cruzan juntos nombre/teléfono del cliente con la dirección exacta de la casa; BigQuery lleva `cliente_hash` + zona/fraccionamiento/precio. Es el esquema menos riesgoso, pero sigue siendo seudonimizado (no anónimo) y conviene revisión legal del aviso.
 - Cuentas con acceso al proyecto de Google Cloud: solo las de la empresa, con verificación en dos pasos.
 
 ## Orden de pasos
@@ -76,4 +83,4 @@ Límites: contactos sin `Ref:` (llamada, recomendación) entran como origen `man
 7. Flujo n8n CRM → BigQuery (`etapas_log` primero, luego el resto) y foto diaria del catálogo.
 8. Vistas y tablero Looker: embudo canal → visita → lead → cita → cierre por campaña y zona; precios y comisión por zona/tipo/condición; qué características se venden; motivos de caída; consultas SEO por página.
 9. Meta Ads a BigQuery y conversiones offline ([conversiones-offline.md](conversiones-offline.md)), que reutilizan los mismos campos.
-10. Hoja de recorrido móvil en el sitio ([../crm/recorridos.md](../crm/recorridos.md)); mientras tanto, las paradas se capturan en el CRM.
+10. Hoja de recorrido móvil en el sitio ([../crm/recorridos.md](../crm/recorridos.md)); mientras tanto, las visitas se capturan en el CRM.
