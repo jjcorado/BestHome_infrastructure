@@ -33,6 +33,8 @@ Un flujo de n8n, disparado por el administrador desde el CRM (casilla en el Cont
 | Precio de cierre, comisión, días de ciclo | Fechas exactas → solo el mes |
 | | Cualquier texto libre (nunca llega a BigQuery) |
 
+**Integridad del embudo (obligatoria):** los IDs nuevos se calculan con una sola función para toda la ejecución, de modo que cada ID viejo (`ref_code`, `busqueda_id`, `cierre_id`) recibe **el mismo ID nuevo en todas las tablas** (`leads`, `busquedas`, `etapas_log`, `recorridos`, `visitas`, `cierres`). Por ejemplo `nuevo = SHA256(sal_aleatoria_de_la_ejecución || id_viejo)`, donde la sal se genera al inicio y se descarta al terminar: queda consistente dentro de BigQuery e imposible de revertir. Las tablas se actualizan en un solo script y se verifica el conteo de filas antes y después. Como `utm_*`, `campaign_id`, canal y precio ya están copiados en la fila, el reporte canal → venta → costo sigue completo; solo se pierde el cruce con eventos crudos de GA4, que es justo el vínculo que se quiere romper.
+
 Así el reporte «qué canal trajo qué venta y a qué costo» sigue funcionando; solo desaparece el vínculo con una persona, una propiedad concreta y un instante exacto. Se marca `anonimizado = verdadero` y se registra la solicitud en `arco_log` (fecha, tipo, resultado, **sin datos personales**).
 Además:
 - WordPress: si todavía existe el lead en `wp_bh_leads`, borrar la fila desde Propiedades › Leads (hoy ya existe «Eliminar»).

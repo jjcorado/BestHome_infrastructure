@@ -3,6 +3,7 @@
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
 ## 2026-10-24
+- (2026-10-25) Lista final de campos y permisos de EspoCRM en `crm/campos-espocrm.md`; el interés general del recorrido se elimina (redundante con la reacción); `fecha_cierre` exacta; la anonimización usa IDs nuevos consistentes entre tablas.
 - Se diseña la analítica con BigQuery y Looker Studio: `n8n/bigquery-looker.md` (fuentes, flujo CRM → BigQuery seudonimizado, unión por `ref_code`, costos, privacidad, orden de pasos) y `crm/campos-analitica.md` (campos y entidades del CRM, incl. «Propiedad mostrada»). Solo documentación.
 - Se diseña el registro de recorridos (`crm/recorridos.md`: hoja móvil, entidades Recorrido y Parada) en lugar de «Propiedad mostrada», y se añaden reportes objetivo (CAC por rango de precio, demanda vs. oferta, propiedades estancadas) a `n8n/bigquery-looker.md`.
 - Principios de la capa de datos (independiente de la herramienta, inventario solo desde WordPress, n8n único integrador). Recorridos ya no consultan EasyBroker.

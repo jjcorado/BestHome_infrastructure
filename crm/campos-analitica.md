@@ -1,6 +1,6 @@
 # Campos del CRM y del sitio para analítica
 
-Estado: **diseño (2026-10-24)**. Entidades del CRM: Lead, Contacto, Búsqueda (antes Oportunidad), Cierre. Destino de los datos y reglas de privacidad: [../n8n/bigquery-looker.md](../n8n/bigquery-looker.md). Regla general: **catálogos (enum / multi-enum) en vez de texto libre**, con los mismos valores en CRM, sitio y BigQuery; sin catálogo no hay gráficas.
+Estado: **diseño (2026-10-24)**. La lista definitiva para crear los campos está en [campos-espocrm.md](campos-espocrm.md); este archivo conserva el racional. Entidades del CRM: Lead, Contacto, Búsqueda (antes Oportunidad), Cierre. Destino de los datos y reglas de privacidad: [../n8n/bigquery-looker.md](../n8n/bigquery-looker.md). Regla general: **catálogos (enum / multi-enum) en vez de texto libre**, con los mismos valores en CRM, sitio y BigQuery; sin catálogo no hay gráficas.
 
 ## Leads perdidos y sin respuesta (también se analizan)
 Todo lead queda en el CRM y en BigQuery aunque no avance. Campos para eso: `fecha_primera_respuesta` (del cliente), `etapa` con valores `sin_respuesta` y `descartado`, y el origen completo (canal, campaña, `referrer` de first-touch). Permite ver, por ejemplo, qué fuente (anuncios, buscadores, asistentes de IA como ChatGPT) trae contactos que no contestan o que no encontraban lo que buscaban. La tasa de respuesta y el tiempo a la primera respuesta se calculan en BigQuery.
