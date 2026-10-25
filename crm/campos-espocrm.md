@@ -66,8 +66,9 @@ Cambios de `etapa` y de `asesor` generan evento a n8n (`etapas_log`).
 | `fecha_cierre` | **fecha exacta** | sin redondeo |
 | `dias_ciclo` | entero | n8n o fórmula: de `fecha_entrada` a `fecha_cierre` |
 | `precio_lista`, `precio_cierre` | moneda | exactos |
-| `comision_cobrada` | moneda, sin IVA | total cobrado por la operación |
-| `ingreso_inmobiliaria` | moneda, sin IVA | lo que **le queda a Best Home** (comisión cobrada menos lo compartido con otra inmobiliaria, si aplica). *Por confirmar la definición con Javier; el pago al asesor es un costo interno y no se resta aquí.* |
+| `ingreso_inmobiliaria` | moneda, sin IVA | **lo que ingresó a Best Home** por la operación (es el dato que importa para ingresos y CAC) |
+| `comision_pct` | porcentaje (opcional) | comisión pactada; el total cobrado se puede derivar de precio × % |
+| `compartida_otra_inmobiliaria` | sí \| no | si entró otra inmobiliaria (normalmente 50/50). Sirve para ver en qué zona o rango de precio falta inventario propio. Si fue compartida, `ingreso_inmobiliaria` ya es la parte de Best Home |
 | `lado` | vendedor \| comprador \| ambos | |
 | `tipo_vendedor` | particular \| desarrollador \| inmobiliaria o asesor \| otro | |
 | `forma_pago` | contado \| crédito bancario \| Infonavit/Fovissste \| mixto | |
