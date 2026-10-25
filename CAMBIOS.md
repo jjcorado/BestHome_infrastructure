@@ -2,6 +2,9 @@
 
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
+## 2026-10-25
+- Se incorpora al repo el diseño v3 de EspoCRM (`crm/DISENO-ESPOCRM.md`, sin Lead) y se realinea todo con él: `crm/campos-espocrm.md` (campos sobre v3), `crm/recorridos.md` (Recorrido = Reunión + Visita), `crm/privacidad-arco.md`, `n8n/bigquery-looker.md` y nueva `crm/REVISION-INTEGRAL.md`.
+
 ## 2026-10-24
 - (2026-10-25) Lista final de campos y permisos de EspoCRM en `crm/campos-espocrm.md`; el interés general del recorrido se elimina (redundante con la reacción); `fecha_cierre` exacta; la anonimización usa IDs nuevos consistentes entre tablas.
 - Cierre simplificado: `ingreso_inmobiliaria`, `comision_pct` opcional y `compartida_otra_inmobiliaria` (sí/no), sin `comision_cobrada`.

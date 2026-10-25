@@ -6,7 +6,8 @@ Estado: **diseño (2026-10-24), revisado con las observaciones de Javier y de Ge
 Todo ocurre **dentro del CRM** (EspoCRM, móvil): el asesor no sale a otra pantalla. Opcional y mínimo: lo único que se escribe a mano es el ID de la casa; precio, ubicación y metros los llena n8n. Una pantalla por visita con 3 toques como máximo.
 
 ## Modelo
-- **Recorrido** (hijo de Búsqueda; opcional): `fecha`, `asesor`, `ids_a_visitar` (texto, un ID o link por línea; opcional), `comentario_general` (opcional). No hay campo de interés: sería redundante con la reacción de cada visita.
+Base: en el diseño v3 el **Recorrido es la Reunión del calendario renombrada** ([DISENO-ESPOCRM.md](DISENO-ESPOCRM.md)); aquí se le agrega la entidad hija Visita.
+- **Recorrido** (Reunión, ligada a la Búsqueda; opcional): `fecha`, `asesor`, `ids_a_visitar` (texto, un ID o link por línea; opcional), `comentario_general` (opcional). No hay campo de interés: sería redundante con la reacción de cada visita.
 - **Visita** (hija de Recorrido; una por casa, terreno o departamento visitado): `hora_visita`, `id_propiedad` (texto), `origen` (propia | otra inmobiliaria), `vista` (sí | no), `motivo_no_vista` (cerrada | dueño no disponible | cliente canceló | otro), `reaccion` (**le gustó | neutral | no le gustó**), `comentario` (abierto; **sin catálogo de motivos**), y los campos que llena n8n: ubicación (zona y fraccionamiento), tipo, condición, precio, m² de construcción, m² de terreno, `url_ficha`, todos como copia al momento.
 - «Neutral» = comentó pero no descarta. No hay motivo de descarte estructurado por decisión de Javier; el porqué vive en el comentario, que no sale a BigQuery. Si más adelante hace falta medir motivos, se agrega un campo opcional sin romper nada.
 - Las propiedades no son entidad del CRM: `id_propiedad` es texto y la copia al momento hace que el reporte sobreviva si la casa cambia de precio o se archiva.
