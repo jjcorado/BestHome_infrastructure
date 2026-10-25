@@ -1,6 +1,6 @@
 # CRM
 
-Estado: **sin elegir** (candidato: EspoCRM autoalojado). Criterios y opciones evaluadas: [ELECCION-CRM.md](ELECCION-CRM.md).
+Estado: **EspoCRM 10.0.11 instalado** en el VPS, sin campos ni integraciones configurados (ver [../servidor/ESTADO-ACTUAL.md](../servidor/ESTADO-ACTUAL.md)). Criterios y opciones evaluadas: [ELECCION-CRM.md](ELECCION-CRM.md).
 
 Reglas ya decididas ([../DECISIONES.md](../DECISIONES.md)): ventas, precio de cierre y comisiones de cada operación viven en el CRM, no en el sitio. El sitio es la fuente de verdad de los leads (outbox) y n8n los lleva al CRM ([../n8n/flujo-leads.md](../n8n/flujo-leads.md)).
 

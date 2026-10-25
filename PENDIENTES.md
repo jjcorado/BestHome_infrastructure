@@ -9,8 +9,8 @@ Documento vivo; describe lo que **falta**. Lo que ya existe está en [sitio-web/
 ## Estado general
 
 - **Fase 1 (local): terminada.** Seguridad (IP, SMTP, plugin protegido), outbox de leads `wp_bh_leads` con reintentos, atribución first/last, WhatsApp con `Ref: R-XXXXXX`, diseño (hero, modales, header, banda de contacto), aviso de privacidad enlazado, eventos de dataLayer, remarketing (view_item + feed alineados), precio por m², verificación de precios, notas internas, visibilidad (pública / privada / archivada), orden manual del catálogo (`bh_sort_date`).
-- **Fase 2 (servidor y migración): pendiente.**
-- **Fase 3 (n8n, CRM, conversiones offline): pendiente.**
+- **Fase 2 (servidor y migración): en curso.** VPS asegurado, Docker, n8n y EspoCRM instalados (ver [servidor/ESTADO-ACTUAL.md](servidor/ESTADO-ACTUAL.md)). Falta dominio, Cloudflare y migrar el sitio.
+- **Fase 3 (n8n, CRM, conversiones offline): iniciada.** n8n y EspoCRM instalados sin flujos ni configuración; falta todo lo demás.
 
 ---
 
@@ -26,6 +26,15 @@ Documento vivo; describe lo que **falta**. Lo que ya existe está en [sitio-web/
 ---
 
 ## Fase 2 — Servidor y migración
+Pendientes del servidor (actualizado 2026-10-23):
+- [ ] Dominio `besthomeqro.com` en Cloudflare (nube naranja, SSL *Full (strict)*, certificado de origen) y `real_ip` en Nginx.
+- [ ] Subdominios: `n8n.` y `evo.` con Cloudflare Access; `api.` público solo `/webhook/` con rate limit. Reverse proxies en CloudPanel.
+- [ ] Limitar 80/443 en UFW a los rangos de Cloudflare cuando el dominio ya pase por Cloudflare.
+- [ ] Copia de los backups (n8n, EspoCRM, CloudPanel) **fuera del VPS** y una restauración de prueba.
+- [ ] MySQL solo en `127.0.0.1`; apagar FTP si no se usa; limpiar reglas duplicadas de UFW (OpenSSH/22, 80/80-tcp).
+- [ ] Evolution API (al final; número de prueba, solo lectura, `cpus: 0.5`).
+- [ ] Monitoreo ligero y revisión a las 2 semanas de uso para decidir si hace falta KVM 4.
+
 Checklist completo en [servidor/FASE2-MIGRACION.md](servidor/FASE2-MIGRACION.md); arquitectura en [servidor/ARQUITECTURA-VPS.md](servidor/ARQUITECTURA-VPS.md); GTM en [sitio-web/GTM.md](sitio-web/GTM.md).
 
 ## Fase 3 — CRM, n8n y conversiones
