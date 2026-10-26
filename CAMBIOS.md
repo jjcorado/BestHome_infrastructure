@@ -2,8 +2,11 @@
 
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
+## 2026-10-25 (landings)
+- Plantilla `Landing` (tema 0.1.54): HTML y CSS propios por página, sin header ni footer; shortcodes `[bh_casas]`, `[bh_formulario]`, `[bh_campos_ocultos]`; noindex por defecto. `lead_generado` trae `origin`. Plugin: `leads.php` guarda campos `x_*` en `payload.extra`. Reglas en `sitio-web/LANDINGS.md`.
+
 ## 2026-10-25 (catálogo: filtros)
-- Tema 0.1.54: los chips de Precio, Construcción y Terreno muestran el rango elegido; «Limpiar filtros» en escritorio es el botón azul compacto de móvil; los pares mín/máx llevan botón «Aplicar» (ya no se envían al perder foco).
+- Tema (versión por confirmar al integrar con landings; ambos trabajos usaron 0.1.54): los chips de Precio, Construcción y Terreno muestran el rango elegido; «Limpiar filtros» en escritorio es el botón azul compacto de móvil; los pares mín/máx llevan botón «Aplicar» (ya no se envían al perder foco).
 - Rendimiento: los filtros numéricos (`pmin/pmax/rec/ban/cmin/cmax/tmin/tmax`) se resuelven con una sola SQL sobre `postmeta` y se pasan como `post__in` (antes un JOIN por filtro). La visibilidad no se duplica en la réplica de `bh_catalog_amenity_slugs()` (`bh_vis_done`). Medido en Local: 6 filtros 18 s → 0.55 s.
 - Nota de entorno: Local WP trae `pm.max_children = 2`; una consulta pesada congela el sitio. Conviene 6–8 en Local.
 
