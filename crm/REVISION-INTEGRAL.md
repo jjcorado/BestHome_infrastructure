@@ -29,7 +29,7 @@ Contacto (persona) → Búsqueda (qué busca, origen, atribución, etapa) → Re
 | 8 | Baja de marketing | Casilla o enlace de baja | Marca en Contacto + lista de exclusión | **Nuevo**, antes de cualquier correo |
 | 9 | ARCO: bloqueo y anonimización | Casilla del administrador | Bloqueo en CRM; `UPDATE` consistente en BigQuery; `arco_log` | **Nuevo** |
 | 10 | Tareas de v3 (seguimiento 24–48 h, decidir estatus, apartado, inactividad) | Ver v3 | Tareas | Diseñado en v3 |
-| 11 | Correos automáticos | — | — | **Después** de crear los campos y el flujo 8 |
+| 11 | Correos: suscripción, boletín, agradecimiento, recordatorio de escritura, recomendaciones | Ver [../n8n/correo-marketing.md](../n8n/correo-marketing.md) | Correo vía Brevo (recomendado) | Diseñado; **después** de crear los campos y el flujo 8 |
 Los flujos 3, 4 y 8 son los que más pesan para no perder datos; 5, 6 y 7 pueden esperar a tener datos reales.
 
 ## 4. Qué pedimos a los asesores (y qué no)
@@ -41,13 +41,19 @@ Los flujos 3, 4 y 8 son los que más pesan para no perder datos; 5, 6 y 7 pueden
 Sigue v3 §5: un asesor, 2 semanas, en celular. Guion de 5 tareas cronometradas: (1) abrir su Búsqueda, (2) crear un Recorrido pegando 3 IDs, (3) marcar vista y reacción de las 3 Visitas, (4) agregar un comentario general, (5) marcar una Búsqueda como Perdida con motivo.
 Criterios de éxito: recorrido completo en **menos de 2 minutos**; **al menos 70 %** de los recorridos con Visitas; ningún campo obligatorio saltado por error; el asesor reporta que no tuvo que salir del CRM. A los 30 días: revisar campos vacíos y quitar los que no se usen (v3 §5). Pendiente: verificar cómo se ve EspoCRM en el celular (app o navegador) antes del piloto.
 
-## 6. Preguntas abiertas (con mi recomendación)
-1. **`fecha_cierre`**: ¿fecha de escrituración/firma (recomendado, cuando se ingresa la comisión) o de entrega?
-2. **Asesores y `no_contactar_marketing`**: ¿solo lectura (recomendado, evita incluir a alguien en un envío) o oculto?
-3. **Contactos heredados de EasyBroker**: ¿se importan al CRM? Recomendado: sí, como `origen_contacto = heredado`, con aviso de privacidad en el primer contacto y sin campañas masivas hasta tenerlo.
-4. **¿Es Best Home «actividad vulnerable»** por intermediar inmuebles? Condiciona cuánto se puede borrar y por cuánto tiempo conservar; requiere contador o abogado.
-5. **Plazos de inactividad por etapa** y **alerta de SLA** (pendientes de v3).
-6. **Filtro por ID en la API de catálogo** (`q` con `bh_eb_id`) y confirmar que las propiedades no se pueden borrar definitivamente.
+## 6. Decisiones (2026-10-26) y preguntas abiertas
+**Decididas por Javier:**
+1. `fecha_cierre` = fecha de escrituración (venta) o de firma (renta), porque no siempre hay entrega.
+2. `no_contactar_marketing`: solo lectura para los asesores.
+3. Contactos de EasyBroker: los importantes se capturan a mano al principio; después, importación desde archivo CSV revisando duplicados (teléfono a 10 dígitos y correo en minúsculas), como `origen_contacto = heredado` y sin marketing.
+4. Las propiedades no se borran definitivamente (hay que confirmarlo en el plugin).
+5. Filtro por ID en la API de catálogo: el catálogo es la página a la que n8n pregunta por las casas; hoy se busca con un texto (`q`) y hay que verificar que ese texto encuentre un ID como `EB-123` o `BH-045`; si no, se agrega un parámetro `eb_id` que devuelva exactamente esa casa.
+6. Correo masivo y recordatorios: [../n8n/correo-marketing.md](../n8n/correo-marketing.md).
+
+**Siguen abiertas (revisar con contador o abogado, o después del piloto):**
+- ¿Best Home es «actividad vulnerable» por intermediar inmuebles? Condiciona qué se puede borrar y por cuánto tiempo.
+- Plazos de inactividad por etapa y alerta de SLA.
+- Cuántos contactos con correo hay y volumen mensual de envíos, para elegir plan de correo.
 
 ## 7. Riesgos principales
 - Pedir demasiado a los asesores: se mitiga con n8n, pocos campos y el piloto.

@@ -7,7 +7,8 @@ Reglas: catálogos en vez de texto; solo el ID de la casa es obligatorio en lo n
 ## Contacto (agregar al diseño v3)
 | Campo | Tipo | Acceso |
 |---|---|---|
-| `no_contactar_marketing` | casilla | Adm (lectura para asesor: decisión pendiente) |
+| `suscrito_boletin` | casilla (doble confirmación o aceptación al ofrecerlo) | A / n8n |
+| `no_contactar_marketing` | casilla | n8n y Adm; **asesores: solo lectura** |
 | `fecha_baja_marketing`, `canal_baja` (correo \| whatsapp \| manual) | fecha-hora / enum | Adm |
 | `bloqueo_legal`, `fin_bloqueo` | casilla / fecha | Adm |
 | `origen_contacto` | nuevo \| heredado (EasyBroker u otro CRM) | Adm |
@@ -43,7 +44,9 @@ Recorrido: fecha, asesor, `ids_a_visitar` (texto opcional para pegar varios), `c
 v3 ya trae: propiedad (código o texto), precio, tipo de vendedor, comisión % editable, apartado, enganche, fechas de promesa, escrituración y entrega, notaría, motivo de caída y campos de renta.
 | Campo | Tipo | Notas |
 |---|---|---|
-| `fecha_cierre` | fecha exacta | **por confirmar**: propongo la fecha de escrituración (venta) o de firma (renta) |
+| `fecha_cierre` | fecha exacta | **fecha de escrituración** (venta) o de firma (renta) |
+| `escritura_recogida`, `fecha_escritura_recogida` | casilla / fecha | A (marca que el cliente ya recogió escritura, certificados, hoja del Registro Público y factura); detiene los recordatorios |
+| `resena_solicitada` | fecha | n8n |
 | `dias_ciclo` | entero | n8n: de `fecha_entrada` a `fecha_cierre` |
 | `ingreso_inmobiliaria` | moneda, sin IVA | lo que ingresó a Best Home (ya es su parte si fue compartida) |
 | `compartida_otra_inmobiliaria` | sí \| no | para ver dónde falta inventario propio |
