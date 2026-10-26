@@ -37,8 +37,8 @@ Recorrido: fecha, asesor, `ids_a_visitar` (texto opcional para pegar varios), `c
 | `id_propiedad` | texto (EB- / BH- / ID externo) | A (**único obligatorio**) |
 | `hora_visita` | hora | A |
 | `vista` / `motivo_no_vista` | sí \| no (defecto sí) / cerrada \| dueño no disponible \| cliente canceló \| otro | A |
-| `reaccion` | le gustó \| neutral \| no le gustó | A |
-| `comentario` | texto libre (no sale a BigQuery) | A |
+| `calificacion` | no le gustó \| sin reacción \| le gustó \| le encantó | A |
+| `comentario` | un solo texto libre, positivo o negativo (no sale a BigQuery) | A |
 | `origen`, `zona`, `fraccionamiento`, `tipo`, `condicion`, `precio`, `m2_construccion`, `m2_terreno`, `url_ficha` | copia al momento | n8n |
 
 ## Cierre (la «Operación» de v3; agregar)

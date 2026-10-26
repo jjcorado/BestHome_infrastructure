@@ -115,7 +115,7 @@ La **Búsqueda es igual** para compra y renta. Lo que cambia es el **Cierre**, c
 
 ## 10. Extensiones para analítica, recorridos y privacidad (2026-10-25)
 Sin cambiar los principios de este documento (sin Lead, pocos campos, lo repetitivo lo llena n8n):
-- **Recorrido = Reunión renombrada**, con una entidad hija **Visita** (una por casa visitada): ID de la propiedad, reacción en 3 niveles (le gustó / neutral / no le gustó) y comentario. Sustituye a los campos «propiedades mostradas» y «retroalimentación» del Recorrido. Detalle: [recorridos.md](recorridos.md).
+- **Recorrido = Reunión renombrada**, con una entidad hija **Visita** (una por casa visitada): ID de la propiedad, calificación en 4 niveles (no le gustó / sin reacción / le gustó / le encantó) y un solo comentario. Sustituye a los campos «propiedades mostradas» y «retroalimentación» del Recorrido. Detalle: [recorridos.md](recorridos.md).
 - **Campos nuevos en Contacto, Búsqueda y Cierre**, con permisos por campo, listados en [campos-espocrm.md](campos-espocrm.md). Los que llena el asesor son pocos y opcionales; el resto lo llena n8n.
 - **Atribución y `ref_code`** viven en la Búsqueda (no hay Lead). Si el mismo cliente llega otra vez, los `ref_code` adicionales se guardan en la Búsqueda activa y cada contacto se registra como evento en BigQuery.
 - **Privacidad:** baja de marketing, bloqueo legal y anonimización en BigQuery: [privacidad-arco.md](privacidad-arco.md).

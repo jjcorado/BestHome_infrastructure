@@ -3,6 +3,8 @@
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
 ## 2026-10-26
+- Visita: calificación de 4 niveles y un solo comentario; se conserva el Recorrido (es la Reunión del calendario). Correo: EspoCRM Mass Email con Brevo como SMTP; baja de correo nativa (sin flujo de n8n) y separada de ARCO. Historial de precio por evento en WordPress. Plan de n8n pasa a seis flujos.
+- Tras la revisión de Gemini: el espejo a BigQuery pasa a webhooks por evento (etapas, asesor, registros y cambios de precio) con reconciliación semanal; confirmación humana e IDs verificados en el asistente MCP; puntos para el asesor legal; `motivo_rechazo` opcional en Visita queda pendiente de decisión.
 - Se descarta la foto diaria del catálogo en BigQuery (solo, si hace falta, cambios de propiedades modificadas). La consulta de propiedades es por ID exacto (`eb_id`), no por texto.
 - Nuevos `n8n/plan-automatizaciones.md` (siete flujos, reglas para el KVM 2, orden sin Evolution) y `n8n/asistente-ia-mcp.md` rediseñado como prioridad 1. La primera respuesta pasa a fórmula de EspoCRM y el historial de etapas a una corrida nocturna.
 - Nuevo `n8n/correo-marketing.md` (boletín, agradecimiento y reseña, recordatorio de escritura, recomendaciones; proveedor, consentimiento y flujos). Decisiones: `fecha_cierre` = escrituración, `no_contactar_marketing` solo lectura para asesores, importación de contactos de EasyBroker por CSV con revisión de duplicados.

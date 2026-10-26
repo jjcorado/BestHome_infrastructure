@@ -2,7 +2,14 @@
 
 Estado: **diseño (2026-10-24)**. Sujeto a revisión de un asesor legal (la ley de datos se reformó en 2025 y hay obligaciones antilavado si Best Home es actividad vulnerable). Contexto de datos: [../n8n/bigquery-looker.md](../n8n/bigquery-looker.md).
 
-## Dos tipos de solicitud
+## Para el asesor legal (antes del primer boletín)
+- Si Best Home es actividad vulnerable (LFPIORPI): alta ante el SAT, manual de cumplimiento y plazo de conservación; es lo que justifica el bloqueo en lugar del borrado.
+- Si el texto de la casilla del formulario basta para el boletín o se requiere doble confirmación (diseño actual: doble confirmación).
+- Cláusulas del aviso: uso de herramientas de inteligencia artificial de terceros para asistencia interna, y almacenamiento en infraestructura de terceros (Google Cloud, Hostinger, proveedor de correo).
+
+## Dos tipos de solicitud (no mezclarlas)
+La baja de marketing es opcional y se hace con un clic en el correo (o pidiéndola por WhatsApp). ARCO **no** se ofrece en los correos: el titular lo solicita directamente al medio que indique el aviso de privacidad (p. ej. un correo de privacidad) y lo atiende el administrador dentro del plazo legal.
+
 1. **Oposición / baja de marketing**: «ya no me manden publicidad». No se borra nada: se marca y todo envío (correo, WhatsApp, anuncios con listas) debe respetar la marca.
 2. **Cancelación**: «borren mis datos». Depende de si hay operación cerrada.
 
@@ -28,7 +35,7 @@ Un flujo de n8n, disparado por el administrador desde el CRM (casilla en el Cont
 | Se conserva (para reportes de canal, costo e ingreso) | Se quita o se generaliza |
 |---|---|
 | `canal_entrada`, `utm_*`, `campaign_id`/grupo de anuncios (guardados desde el origen), fuente y medio | `cliente_hash` → `BORRADO_ARCO`; `ref_code`, `busqueda_id`, `cierre_id` → identificador aleatorio nuevo |
-| Etapas y su orden, `motivo_caida`, reacciones de visitas, asesor | `ga_client_id`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `_fbc`, `_fbp` → vacíos |
+| Etapas y su orden, `motivo_caida`, calificaciones de visitas, asesor | `ga_client_id`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `_fbc`, `_fbp` → vacíos |
 | Tipo de operación y de inmueble, condición, características, zona | `id_propiedad`/`eb_id` → vacío; fraccionamiento → solo zona |
 | Precio de cierre, comisión, días de ciclo | Fechas exactas → solo el mes |
 | | Cualquier texto libre (nunca llega a BigQuery) |

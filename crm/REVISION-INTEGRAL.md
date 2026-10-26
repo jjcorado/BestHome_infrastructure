@@ -17,7 +17,7 @@ Contacto (persona) → Búsqueda (qué busca, origen, atribución, etapa) → Re
 **Cliente que vuelve a escribir.** El formulario o el mensaje trae otro `ref_code`. Por la deduplicación de v3 (6b), n8n no crea otra Búsqueda si hay una activa: agrega una nota y guarda el nuevo `ref_code` en `ref_codes_adicionales`. Para no perder la atribución de ese segundo contacto, n8n lo registra además como evento en la tabla `leads` de BigQuery (un registro por contacto con el sitio), ligado a la Búsqueda. Así el CRM sigue sin Lead y el análisis sigue viendo todos los contactos.
 
 ## 3. Flujos de n8n
-Se consolidaron en **siete flujos de baja frecuencia** para no saturar el KVM 2, con el asistente MCP como prioridad 1 y sin depender de Evolution API: ver [../n8n/plan-automatizaciones.md](../n8n/plan-automatizaciones.md). Las fórmulas de EspoCRM hacen solas la primera respuesta, `dias_ciclo` y la sincronía de etapas.
+Se consolidaron en **seis flujos de baja frecuencia, disparados por eventos salvo los recordatorios con fecha** para no saturar el KVM 2, con el asistente MCP como prioridad 1 y sin depender de Evolution API: ver [../n8n/plan-automatizaciones.md](../n8n/plan-automatizaciones.md). Las fórmulas de EspoCRM hacen solas la primera respuesta, `dias_ciclo` y la sincronía de etapas.
 
 ## 4. Qué pedimos a los asesores (y qué no)
 **Lo único que escriben:** nombre y teléfono o correo (v3); en cada Visita, el **ID de la casa** y tocar la reacción; el motivo al marcar Perdido. **Opcional:** comentario por visita, comentario del recorrido, tipo de inmueble, presupuesto mínimo.

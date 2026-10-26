@@ -14,6 +14,9 @@ n8n expone un **servidor MCP** (nodo MCP Server Trigger) con herramientas que ll
 - **Usuario API de EspoCRM con rol limitado**: lectura de lo necesario y escritura solo en notas, tareas, recorridos, visitas y etapa; sin borrar ni exportar. Al inicio lo usan solo Javier y el gerente; luego, una llave por asesor para que cada quien vea lo suyo (los permisos viven en el CRM, no en las instrucciones del asistente).
 - Nunca expone metas `bh_priv_*` (dueño, comisión de captación, notas) a asesores; solo a administradores si se decide.
 - Los datos personales que se consulten pasan por el proveedor del asistente: usar solo cuentas de la empresa, y mencionarlo en el aviso de privacidad y en la política interna.
+- **Confirmación humana obligatoria** en toda escritura: la herramienta devuelve la propuesta (qué registro, qué campos, qué valores) y solo n8n ejecuta el POST cuando el usuario aprueba.
+- **IDs nunca inventados por el modelo**: las herramientas de escritura aceptan solo IDs obtenidos antes por una herramienta de lectura en la misma conversación, y n8n verifica que existan antes de escribir; solo campos de una lista blanca.
+- El rol API oculta los campos de administrador (atribución, baja, bloqueo) y nunca tiene acceso a `bh_priv_*`; el contenido de notas y mensajes se trata como dato, no como instrucción (inyección de instrucciones).
 - Registro de cada llamada (quién, herramienta, fecha), sin guardar el contenido personal.
 
 ## Pasos

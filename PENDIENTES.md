@@ -47,6 +47,7 @@ Checklist completo en [servidor/FASE2-MIGRACION.md](servidor/FASE2-MIGRACION.md)
 - [ ] **Prioridad 1: asistente MCP** (lectura y escritura del CRM desde Claude, sin WhatsApp): [n8n/asistente-ia-mcp.md](n8n/asistente-ia-mcp.md); plan mínimo para el KVM 2 en [n8n/plan-automatizaciones.md](n8n/plan-automatizaciones.md).
 - [ ] **Revisión integral** de CRM, recorridos, analítica y privacidad: [crm/REVISION-INTEGRAL.md](crm/REVISION-INTEGRAL.md) (flujos de n8n, prueba con asesores y preguntas abiertas).
 - [ ] **Crear en EspoCRM** los campos de [crm/campos-espocrm.md](crm/campos-espocrm.md) sobre el diseño v3 ([crm/DISENO-ESPOCRM.md](crm/DISENO-ESPOCRM.md); sin Lead) (con permisos por campo y sin borrado para asesores). Confirmar la definición de `ingreso_inmobiliaria`. Después, diseñar los correos automáticos (dependen de estos campos y de la baja de marketing).
+- [ ] **Plugin: historial de precio por evento** (tabla con ID, precio anterior, nuevo y fecha, escrita al cambiar `bh_price`, sin tocar `sync.php`) y parámetro `eb_id` exacto en la API de catálogo.
 - [ ] **Recorridos** ([crm/recorridos.md](crm/recorridos.md)): decidido: todo dentro de EspoCRM (entidades Recorrido y Visita, reacción de 3 niveles, comentarios abiertos). Falta crearlas, el webhook y el flujo n8n que completa los datos de la casa por ID desde la API de catálogo (agregar a la API de catálogo el parámetro exacto `eb_id`). Confirmar que el plugin impide el borrado definitivo de propiedades.
 
 ---
