@@ -38,6 +38,7 @@ Recorrido: fecha, asesor, `ids_a_visitar` (texto opcional para pegar varios), `c
 | `hora_visita` | hora | A |
 | `vista` / `motivo_no_vista` | sí \| no (defecto sí) / cerrada \| dueño no disponible \| cliente canceló \| otro | A |
 | `calificacion` | no le gustó \| sin reacción \| le gustó \| le encantó | A |
+| `motivo_rechazo` | precio \| ubicación \| distribución \| estado de conservación \| otro — **visible y obligatorio solo si calificación = no le gustó** (lógica dinámica) | A |
 | `comentario` | un solo texto libre, positivo o negativo (no sale a BigQuery) | A |
 | `origen`, `zona`, `fraccionamiento`, `tipo`, `condicion`, `precio`, `m2_construccion`, `m2_terreno`, `url_ficha` | copia al momento | n8n |
 
@@ -60,4 +61,4 @@ Se descartan de mi propuesta anterior: `lado`, `comision_cobrada` y `forma_pago`
 Los roles de asesor no pueden eliminar ni exportar (v3). Solo administradores borran Contacto, Búsqueda, Recorrido, Visita y Cierre.
 
 ## Catálogo compartido de características (multi)
-roof garden, recámara en planta baja, jardín, terraza, alberca, cuarto de servicio, bodega, estudio, cochera techada (1/2/3+), seguridad 24 h, casa club, mascotas, vista, esquina. Mismos slugs que los términos `amenidad` del sitio.
+**Los mismos 10 términos `amenidad` que ya tiene el sitio** (`includes/cpt.php`): una planta, recámara en planta baja, roof garden, estudio / home office, sala de TV, salón de juegos, cuarto de servicio, alberca privada, alberca en fraccionamiento, terraza. Si se agrega uno, se agrega primero en el sitio.

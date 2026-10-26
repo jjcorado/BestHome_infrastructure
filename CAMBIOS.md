@@ -3,6 +3,7 @@
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
 ## 2026-10-26
+- `motivo_rechazo` en Visita: visible y obligatorio solo si «no le gustó». Catálogo de características = las 10 amenidades del sitio. Nuevo `PLAN-IMPLEMENTACION.md` revisado contra el código del plugin (la API no busca por ID, oculta el precio, no hay condición ni bloqueo de borrado).
 - Visita: calificación de 4 niveles y un solo comentario; se conserva el Recorrido (es la Reunión del calendario). Correo: EspoCRM Mass Email con Brevo como SMTP; baja de correo nativa (sin flujo de n8n) y separada de ARCO. Historial de precio por evento en WordPress. Plan de n8n pasa a seis flujos.
 - Tras la revisión de Gemini: el espejo a BigQuery pasa a webhooks por evento (etapas, asesor, registros y cambios de precio) con reconciliación semanal; confirmación humana e IDs verificados en el asistente MCP; puntos para el asesor legal; `motivo_rechazo` opcional en Visita queda pendiente de decisión.
 - Se descarta la foto diaria del catálogo en BigQuery (solo, si hace falta, cambios de propiedades modificadas). La consulta de propiedades es por ID exacto (`eb_id`), no por texto.

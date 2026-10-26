@@ -19,6 +19,7 @@ Repos de código: tema `jjcorado/besthome-theme` · plugin `jjcorado/besthome-eb
 | [crm/](crm/) | Elección y diseño del CRM |
 | [n8n/](n8n/) | Una automatización por archivo |
 | [evolution-api/](evolution-api/) | WhatsApp vía Evolution API |
+| [PLAN-IMPLEMENTACION.md](PLAN-IMPLEMENTACION.md) | Cambios concretos y orden (sitio, CRM, Google, n8n) |
 | [PENDIENTES.md](PENDIENTES.md) | Lo que falta (Fases 2 y 3) |
 | [FUTURO.md](FUTURO.md) | Ideas sin fecha |
 | [DECISIONES.md](DECISIONES.md) | Decisiones tomadas |
