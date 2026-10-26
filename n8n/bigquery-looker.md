@@ -19,7 +19,7 @@ BigQuery es una **base de análisis sin identidad**: nunca recibe nombre, teléf
 | **Google Ads** | BigQuery Data Transfer Service (conector Google Ads, diario; permite rellenar histórico reciente). Une por `gclid` (vista de clics) con el lead. | Cuando haya campañas activas. |
 | **Meta Ads** | Sin conexión nativa a BigQuery: n8n con la API de Marketing, o conector de pago en Looker. | Después. |
 | **CRM** | n8n → BigQuery (sección 2). | Cuando el CRM tenga datos reales. |
-| **Catálogo del sitio** | n8n lee `GET /propiedades` (ya sin metas privadas) y guarda foto diaria de precio/estado por `eb_id` → historial de precios por zona. | Después. |
+| **Catálogo del sitio** | **No hay copia diaria.** WordPress ya guarda las fechas de publicación, archivado, actualización y el historial de precio de cada propiedad. Si hace falta historial en BigQuery, n8n envía solo las propiedades **modificadas** desde la última corrida (pocas filas). | Opcional, después. |
 
 Región: elegir **una** y usarla en todos los datasets (no se puede cambiar; las uniones exigen misma región). Verificar al crear que GA4, Search Console y el conector de Ads la aceptan; multi-región US es la opción más compatible.
 
@@ -45,12 +45,12 @@ Reglas del flujo:
 ## 2b. Reportes objetivo
 - **CAC y retorno por rango de precio**: gasto (Google Ads/Meta por `campaign_id`) ÷ cierres, por rango de precio de cierre. Requiere que `utm_campaign` use la misma convención que el nombre/ID de campaña en Ads y que el auto-etiquetado de Google Ads esté activo (`gclid`).
 - **Embudo y días a cierre** por asesor, tipo de propiedad y fuente (`etapas_log`).
-- **Demanda vs. oferta**: búsquedas (CRM) y vistas de fichas (GA4 `view_item`) por zona/rango de precio contra el catálogo (foto diaria). Para filtros usados en el catálogo falta un evento (`search` está pendiente en [../sitio-web/GTM.md](../sitio-web/GTM.md)).
-- **Propiedades estancadas**: vistas y leads por `eb_id` contra días publicada → candidatas a ajuste de precio.
+- **Demanda vs. oferta**: búsquedas (CRM) y vistas de fichas (GA4 `view_item`) por zona/rango de precio contra el catálogo actual, consultado cuando se necesita. Para filtros usados en el catálogo falta un evento (`search` está pendiente en [../sitio-web/GTM.md](../sitio-web/GTM.md)).
+- **Propiedades estancadas**: vistas y leads por `eb_id` contra días publicada (fechas que ya guarda WordPress) → candidatas a ajuste de precio.
 - **Recorridos**: motivos de descarte, casas más mostradas vs. vendidas.
 
 ## 2c. Qué guardar hoy que luego no se puede reconstruir
-Estado de etapas con fecha (`etapas_log`), foto diaria del catálogo (precio, estado, vistas), gasto diario por campaña (Ads/Meta), atribución first/last del lead (ya existe), fecha de la primera respuesta del cliente, asesor asignado en cada cambio, y fecha de publicación y de archivado de cada propiedad. Los reportes finales se definen después; estos datos se juntan desde ahora.
+Estado de etapas con fecha (`etapas_log`), fechas de publicación, archivado y precio de cada propiedad (ya en WordPress), gasto diario por campaña (Ads/Meta), atribución first/last del lead (ya existe), fecha de la primera respuesta del cliente, asesor asignado en cada cambio, y fecha de publicación y de archivado de cada propiedad. Los reportes finales se definen después; estos datos se juntan desde ahora.
 Reportes de negocio a definir: ingresos por cliente y por asesor en el tiempo (comisión de la inmobiliaria por cierre; clientes recurrentes por `cliente_hash`), cierres por asesor y por periodo, y lead → cierre por fuente incluyendo los perdidos y sin respuesta.
 
 ## 2d. Atención, asignación y pérdidas (decidido 2026-10-24)
@@ -58,7 +58,7 @@ Reportes de negocio a definir: ingresos por cliente y por asesor en el tiempo (c
 - **Intentos de contacto**: solo si salen solos (conteo de mensajes salientes antes de la primera respuesta del cliente). Si no, no se pide.
 - **Reasignación**: el mismo webhook registra cada cambio de asesor en `etapas_log`, para que la conversión y los tiempos por asesor no se distorsionen.
 - **Catálogo `motivo_caida`** (una opción, un toque, con «otro»): no contesta o datos falsos | presupuesto insuficiente | buscaba otra zona o producto | compró o rentó con otro | financiamiento no aprobado | se enfrió | otro. En las vistas se agrupa en *calidad del lead* (marketing) vs *falla de venta* (comercial).
-- **No se guarda inventario disponible por recorrido.** La foto diaria del catálogo ya permite reconstruir qué había en cualquier fecha (decenas o pocos cientos de filas por día: tamaño insignificante).
+- **No se guarda inventario disponible por recorrido.** Si algún día se necesita saber qué había disponible en una fecha, se aproxima con las fechas de publicación y archivado que ya guarda WordPress; no se guarda una copia diaria.
 - **Métricas que sí**: CAC por fuente y rango de precio, costo por lead calificado, tasa de «no contesta/datos falsos» por campaña, motivo de pérdida dominante por campaña, días lead → cierre por zona, conversión y ticket/comisión por asesor, macro-embudo lead → recorrido → cierre. **Recurrencia/LTV: no es reporte por ahora**; se conserva `cliente_hash` (no cuesta nada) por si los referidos se analizan después.
 
 ## 3. Unir origen con cierre
@@ -88,7 +88,7 @@ Límites: contactos sin `Ref:` (llamada, recomendación) entran como origen `man
 
 **Después:**
 6. Conector Google Ads (al lanzar campañas).
-7. Flujo n8n CRM → BigQuery (`etapas_log` primero, luego el resto) y foto diaria del catálogo.
+7. Flujo n8n CRM → BigQuery (`etapas_log` primero, luego el resto) y, si se necesita, cambios del catálogo (solo propiedades modificadas).
 8. Vistas y tablero Looker: embudo canal → visita → lead → cita → cierre por campaña y zona; precios y comisión por zona/tipo/condición; qué características se venden; motivos de caída; consultas SEO por página.
 9. Meta Ads a BigQuery y conversiones offline ([conversiones-offline.md](conversiones-offline.md)), que reutilizan los mismos campos.
 10. Hoja de recorrido móvil en el sitio ([../crm/recorridos.md](../crm/recorridos.md)); mientras tanto, las visitas se capturan en el CRM.

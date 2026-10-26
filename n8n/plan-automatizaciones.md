@@ -23,7 +23,7 @@ Evolution API, cuando exista, solo refinará la hora real del primer mensaje; no
 | 1 | **Asistente (MCP)** | Bajo demanda | **Prioridad 1.** Ver [asistente-ia-mcp.md](asistente-ia-mcp.md) |
 | 2 | Alta de contacto del sitio | Webhook | Contacto + Búsqueda o nota (v3 6b) |
 | 3 | Completar Visita / Cierre | Webhook de EspoCRM | Datos de la casa desde la API de catálogo; la corrida nocturna repara las que queden sin datos |
-| 4 | **Corrida nocturna única** | Cron 4:00 | Lee los cambios del día en EspoCRM (cambios de etapa y de asesor del Stream con auditoría activa) → `etapas_log`; sincroniza `busquedas`, `recorridos`, `visitas`, `cierres` a BigQuery; foto diaria del catálogo; el día 1, exportación mensual a Cloud Storage |
+| 4 | **Corrida nocturna única** | Cron 4:00 | Lee los cambios del día en EspoCRM (cambios de etapa y de asesor del Stream con auditoría activa) → `etapas_log`; sincroniza `busquedas`, `recorridos`, `visitas`, `cierres` a BigQuery; el día 1, exportación mensual a Cloud Storage de `etapas_log` |
 | 5 | Correos del día | Cron diario | Agradecimiento, recordatorios de escritura, pendientes de reseña; el boletín mensual el día fijado ([correo-marketing.md](correo-marketing.md)) |
 | 6 | Baja de marketing | Webhook del proveedor | Marca el Contacto y la lista de exclusión |
 | 7 | ARCO | Manual (casilla del administrador) | Bloqueo y anonimización ([../crm/privacidad-arco.md](../crm/privacidad-arco.md)) |

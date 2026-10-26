@@ -7,6 +7,6 @@
 - Endpoint de inventario para n8n / IA (lectura del contrato sin metas privadas).
 
 ## Analítica
-- Foto diaria del catálogo (precio/estado por `eb_id`) en BigQuery para historial de precios por zona. Ver [n8n/bigquery-looker.md](n8n/bigquery-looker.md).
+- Registro de cambios del catálogo en BigQuery (solo propiedades modificadas) para historial de precios por zona. Descartada la copia diaria completa. Ver [n8n/bigquery-looker.md](n8n/bigquery-looker.md).
 - Captura automática de «propiedades mostradas» desde los links enviados por WhatsApp.
 - Meta Ads → BigQuery.

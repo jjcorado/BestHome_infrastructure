@@ -34,7 +34,7 @@ Criterios de éxito: recorrido completo en **menos de 2 minutos**; **al menos 70
 2. `no_contactar_marketing`: solo lectura para los asesores.
 3. Contactos de EasyBroker: los importantes se capturan a mano al principio; después, importación desde archivo CSV revisando duplicados (teléfono a 10 dígitos y correo en minúsculas), como `origen_contacto = heredado` y sin marketing.
 4. Las propiedades no se borran definitivamente (hay que confirmarlo en el plugin).
-5. Filtro por ID en la API de catálogo: el catálogo es la página a la que n8n pregunta por las casas; hoy se busca con un texto (`q`) y hay que verificar que ese texto encuentre un ID como `EB-123` o `BH-045`; si no, se agrega un parámetro `eb_id` que devuelva exactamente esa casa.
+5. Consulta por ID exacto en la API de catálogo: todas las propiedades tienen ID único y permanente (`EB-XX0000` / `BH-XX0000`). Hoy la API solo busca por texto (`q`); falta agregar el parámetro `eb_id` que devuelva exactamente esa casa (cambio pequeño en `rest-catalogo.php`).
 6. Correo masivo y recordatorios: [../n8n/correo-marketing.md](../n8n/correo-marketing.md).
 
 **Siguen abiertas (revisar con contador o abogado, o después del piloto):**

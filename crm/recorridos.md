@@ -20,7 +20,9 @@ Si el asesor no usa nada de esto, no pasa nada: el CRM y los reportes funcionan,
 
 ## Quién llena los datos de la casa (n8n)
 EspoCRM dispara un webhook al guardar la Visita (o el Recorrido con IDs). n8n:
-1. Busca el ID en el inventario de WordPress: `GET /wp-json/besthome/v1/propiedades?q=<ID>&visibilidad=todas` (llave `X-BH-Key`). Hay que **confirmar que `q` encuentre `bh_eb_id`** y, si no, agregar el filtro `eb_id`.
+1. Busca el ID en el inventario de WordPress: `GET /wp-json/besthome/v1/propiedades?eb_id=<ID>&visibilidad=todas` (llave `X-BH-Key`). Falta **agregar el parámetro exacto `eb_id`** a la API (hoy solo hay búsqueda por texto `q`); ver nota debajo. Antes: filtro `eb_id`.
+> Nota: todas las propiedades tienen un ID único y permanente (`EB-XX0000` o `BH-XX0000`, que se asigna solo). El ID se guarda en el CRM como un campo de texto simplemente porque es lo que hace el CRM con cualquier campo; la consulta es por **ID exacto**, no una búsqueda de texto.
+
 2. Si existe, escribe en la Visita precio, ubicación, tipo, condición, m², link a la ficha, `origen = propia`. La API no devuelve `bh_priv_*` (incluida la dirección exacta «ubicación o modelo»).
 3. Si no existe, deja `origen = otra inmobiliaria`; el asesor puede escribir esos datos en el comentario o en campos opcionales (precio, m²). El ID externo es solo referencia: no se consulta la API de EasyBroker.
 
