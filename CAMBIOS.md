@@ -3,6 +3,7 @@
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
 ## 2026-10-26
+- Nuevos `n8n/plan-automatizaciones.md` (siete flujos, reglas para el KVM 2, orden sin Evolution) y `n8n/asistente-ia-mcp.md` rediseñado como prioridad 1. La primera respuesta pasa a fórmula de EspoCRM y el historial de etapas a una corrida nocturna.
 - Nuevo `n8n/correo-marketing.md` (boletín, agradecimiento y reseña, recordatorio de escritura, recomendaciones; proveedor, consentimiento y flujos). Decisiones: `fecha_cierre` = escrituración, `no_contactar_marketing` solo lectura para asesores, importación de contactos de EasyBroker por CSV con revisión de duplicados.
 
 ## 2026-10-25

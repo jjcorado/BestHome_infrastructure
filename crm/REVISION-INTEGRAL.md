@@ -16,21 +16,8 @@ Contacto (persona) → Búsqueda (qué busca, origen, atribución, etapa) → Re
 
 **Cliente que vuelve a escribir.** El formulario o el mensaje trae otro `ref_code`. Por la deduplicación de v3 (6b), n8n no crea otra Búsqueda si hay una activa: agrega una nota y guarda el nuevo `ref_code` en `ref_codes_adicionales`. Para no perder la atribución de ese segundo contacto, n8n lo registra además como evento en la tabla `leads` de BigQuery (un registro por contacto con el sitio), ligado a la Búsqueda. Así el CRM sigue sin Lead y el análisis sigue viendo todos los contactos.
 
-## 3. Flujos de n8n (estado y qué falta)
-| # | Flujo | Disparo | Escribe | Estado |
-|---|---|---|---|---|
-| 1 | Alta de contacto del sitio | Webhook del formulario / mensaje WhatsApp con `Ref:` | Contacto + Búsqueda (o nota si hay activa) + evento `leads` | Diseñado (v3 §4.1, 6b); falta construir |
-| 2 | Primera respuesta | Primer mensaje saliente (Evolution) o primer cambio a «Contacto inicial» | `fecha_primera_respuesta` | Diseñado; Evolution después |
-| 3 | Eventos de etapa y asesor | Webhook de EspoCRM al cambiar `etapa` o asesor | `etapas_log` en BigQuery | **Nuevo**, diseñado |
-| 4 | Completar Visita / Cierre | Webhook al guardar Visita (o Recorrido con IDs) o Cierre | Datos de la casa desde la API de catálogo de WordPress | **Nuevo** (confirmar filtro por ID en la API) |
-| 5 | CRM → BigQuery | Diario, paginado, por `modified_at` | `busquedas`, `recorridos`, `visitas`, `cierres` (lista blanca, `cliente_hash`) | **Nuevo** |
-| 6 | Foto diaria del catálogo | Cron | Tabla de catálogo en BigQuery | **Nuevo** |
-| 7 | Exportación mensual a Cloud Storage | Cron | CSV/Parquet de `etapas_log` y catálogo | **Nuevo** |
-| 8 | Baja de marketing | Casilla o enlace de baja | Marca en Contacto + lista de exclusión | **Nuevo**, antes de cualquier correo |
-| 9 | ARCO: bloqueo y anonimización | Casilla del administrador | Bloqueo en CRM; `UPDATE` consistente en BigQuery; `arco_log` | **Nuevo** |
-| 10 | Tareas de v3 (seguimiento 24–48 h, decidir estatus, apartado, inactividad) | Ver v3 | Tareas | Diseñado en v3 |
-| 11 | Correos: suscripción, boletín, agradecimiento, recordatorio de escritura, recomendaciones | Ver [../n8n/correo-marketing.md](../n8n/correo-marketing.md) | Correo vía Brevo (recomendado) | Diseñado; **después** de crear los campos y el flujo 8 |
-Los flujos 3, 4 y 8 son los que más pesan para no perder datos; 5, 6 y 7 pueden esperar a tener datos reales.
+## 3. Flujos de n8n
+Se consolidaron en **siete flujos de baja frecuencia** para no saturar el KVM 2, con el asistente MCP como prioridad 1 y sin depender de Evolution API: ver [../n8n/plan-automatizaciones.md](../n8n/plan-automatizaciones.md). Las fórmulas de EspoCRM hacen solas la primera respuesta, `dias_ciclo` y la sincronía de etapas.
 
 ## 4. Qué pedimos a los asesores (y qué no)
 **Lo único que escriben:** nombre y teléfono o correo (v3); en cada Visita, el **ID de la casa** y tocar la reacción; el motivo al marcar Perdido. **Opcional:** comentario por visita, comentario del recorrido, tipo de inmueble, presupuesto mínimo.

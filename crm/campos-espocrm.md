@@ -20,7 +20,8 @@ Reglas: catálogos en vez de texto; solo el ID de la casa es obligatorio en lo n
 | `ref_code` (el del primer contacto), `ref_codes_adicionales` (texto, uno por línea) | texto | A-lectura / n8n |
 | `canal_entrada` | formulario \| whatsapp \| manual \| referido \| llamada | A-lectura |
 | `eb_id_origen` | texto (casa desde la que escribió) | A-lectura |
-| `fecha_entrada`, `fecha_primera_respuesta` | fecha-hora (la del lead original) | n8n |
+| `fecha_entrada` | fecha-hora (la del lead original) | n8n |
+| `fecha_primera_respuesta` | fecha-hora; **fórmula de EspoCRM**: se llena al salir la etapa de «Nuevo» por primera vez | automática |
 | `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` (first y last), `campaign_id` | texto | Adm |
 | `gclid`, `gbraid`, `wbraid`, `fbclid`, `_fbc`, `_fbp`, `ga_client_id`, `landing_page_first`, `referrer_first` | texto | Adm |
 | `tipos_inmueble` | multi: casa \| departamento \| terreno \| local \| otro | A (opcional) |

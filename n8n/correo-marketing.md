@@ -29,6 +29,7 @@ Los planes de correo del hosting limitan envíos por hora o día y no sirven par
 Necesario sea cual sea la opción: dominio autenticado (SPF, DKIM y DMARC), remitente en un subdominio (p. ej. `mail.besthomeqro.com`) para proteger el correo principal, y respuestas a un buzón atendido. Para saber el tamaño del plan: cuántos contactos con correo hay y cuántos correos al mes (el boletín mensual por 1 000 contactos son 1 000 envíos).
 
 ## Flujos de n8n
+Consolidados para no cargar el servidor: un solo cron diario revisa agradecimientos y recordatorios pendientes, y otro día fijo al mes lanza el boletín ([plan-automatizaciones.md](plan-automatizaciones.md)). Con el volumen actual alcanza el plan gratuito del proveedor (confirmar cifras vigentes).
 | Flujo | Disparo | Acción |
 |---|---|---|
 | Suscripción | Formulario del sitio (con Turnstile) | Correo de confirmación; al confirmar, `suscrito_boletin = sí` en el Contacto o se crea el Contacto |
