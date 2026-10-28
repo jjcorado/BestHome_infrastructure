@@ -2,6 +2,9 @@
 
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
+## 2026-10-28 (PHP)
+- Aviso de Hostinger por vulnerabilidades de PHP (php2shell): Local WP pasa de 8.2.35 a 8.4.27, la misma versión que el VPS; tras el cambio hubo que guardar Ajustes › Enlaces permanentes y todo funciona. Pendiente de servidor anotado en `PENDIENTES.md` (`session.upload_progress` apagado al dar de alta el sitio).
+
 ## 2026-10-27
 - Plugin (commit 701c951): API de catálogo con filtro `eb_id`, precio real con llave + `precio_visible` y `condicion`; historial de precios (`bh_price_history`, `GET /precios`, action `bh_price_changed`); bloqueo de papelera/borrado de propiedades; meta `bh_condition`. Documentado en `sitio-web/API-CATALOGO.md`, `PLUGIN.md` y `CONTRATO-DATOS.md`.
 
