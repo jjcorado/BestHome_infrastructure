@@ -28,6 +28,8 @@ Validación: `php -l` en cada archivo y commit en `jjcorado/besthome-eb-sync`. T
 - Después: formulario de suscripción al boletín (pie de página o blog).
 
 ## D. EspoCRM (continuar la configuración; detalle en [crm/campos-espocrm.md](crm/campos-espocrm.md))
+**Estado EspoCRM al 2026-10-28 (según Javier):** hecho: instalación limpia (MariaDB, límites de memoria, demonio), roles y equipos (Asesor, administradores, Flujo en «propio»), Oportunidad→Búsqueda y Reunión→Recorrido, Búsqueda con 8 etapas (probabilidades 5/10/20/35/60/100/0/0, auditada), entidad Cierre con Propiedad, Tipo, Etapa, Precio, Descripción y relación muchos-a-uno con Búsqueda. Dicho pero sin confirmar: regla de etapas según Tipo, Cierres en el menú, permisos del Asesor, diseño de Lista, campos extra del Cierre. Pendiente: usuarios reales y prueba con un asesor, los puntos 1–5 y 7–8 de abajo (campos de Contacto, Búsqueda, Recorrido, Visita, vistas guardadas), fórmulas Búsqueda/Cierre y usuario API para n8n. Ojo: los campos extra del Cierre (comisión, apartado, enganche, notaría…) deben alinearse con el diseño simple (`ingreso_inmobiliaria` + `compartida_otra_inmobiliaria`, `fecha_cierre`).
+
 1. **Contacto**: `suscrito_boletin`, `no_contactar_marketing` (solo lectura para asesor), fecha/canal de baja, `bloqueo_legal`, `fin_bloqueo`, `origen_contacto`.
 2. **Búsqueda**: `ref_code`, `ref_codes_adicionales`, `canal_entrada`, `eb_id_origen`, `fecha_entrada`, `fecha_primera_respuesta` (fórmula al salir de «Nuevo»), UTM e IDs de clic (solo administradores), `tipos_inmueble`, `presupuesto_min`, `motivo_perdida` (obligatorio al pasar a Perdido). Activar auditoría de `etapa` y del asignado.
 3. **Recorrido** (Reunión): `ids_a_visitar`, `comentario_general`; relación uno a muchos con Visita.
