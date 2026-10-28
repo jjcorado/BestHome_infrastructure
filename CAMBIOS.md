@@ -26,6 +26,15 @@ Bitácora de cambios de **infraestructura y documentación** (los cambios de có
 - Recorridos rediseñados dentro del CRM (Recorrido → Visita, reacción de 3 niveles, comentarios abiertos); se descarta la hoja en wp-admin. Se añaden leads perdidos/sin respuesta, configuración de n8n (sin historial de ejecuciones exitosas, cargas paginadas), `etapas_log` por evento y decisión de propiedades que no se borran.
 - Analítica: primera atención y reasignación automáticas, catálogo `motivo_caida` (calidad del lead vs falla de venta), sin inventario por recorrido, métricas elegidas (sin LTV), y reglas de BigQuery para cierres (semana, precio y comisión redondeados). Luego Javier descartó el redondeo: precio y comisión exactos.
 - Nuevo `crm/privacidad-arco.md`: baja de marketing, lista de exclusión, bloqueo legal en el CRM y anonimización en BigQuery al ejercer ARCO.
+## 2026-10-28 (PHP)
+- Aviso de Hostinger por vulnerabilidades de PHP (php2shell): Local WP pasa de 8.2.35 a 8.4.27, la misma versión que el VPS; tras el cambio hubo que guardar Ajustes › Enlaces permanentes y todo funciona. Pendiente de servidor anotado en `PENDIENTES.md` (`session.upload_progress` apagado al dar de alta el sitio).
+
+## 2026-10-28
+- Nuevo `crm/CONFIGURACION.md` con el estado de EspoCRM (hecho, por confirmar y pendiente). `crm/README.md` y `PENDIENTES.md` actualizados.
+
+## 2026-10-27
+- Plugin (commit 701c951): API de catálogo con filtro `eb_id`, precio real con llave + `precio_visible` y `condicion`; historial de precios (`bh_price_history`, `GET /precios`, action `bh_price_changed`); bloqueo de papelera/borrado de propiedades; meta `bh_condition`. Documentado en `sitio-web/API-CATALOGO.md`, `PLUGIN.md` y `CONTRATO-DATOS.md`.
+
 ## 2026-10-25 (landings)
 - Plantilla `Landing` (tema 0.1.54): HTML y CSS propios por página, sin header ni footer; shortcodes `[bh_casas]`, `[bh_formulario]`, `[bh_campos_ocultos]`; noindex por defecto. `lead_generado` trae `origin`. Plugin: `leads.php` guarda campos `x_*` en `payload.extra`. Reglas en `sitio-web/LANDINGS.md`.
 

@@ -24,6 +24,7 @@ Obligatorio: **Sí** = el sitio falla o la propiedad no debe publicarse sin él;
 | `bh_price` | number | `price` | Sí | `operations[].amount` (× `lot_size` si es por m²) | Siempre el total; 0 si no se muestra |
 | `bh_show_price` | boolean | `show` | Sí | `show_prices` | Falso → “Consultar precio” |
 | `bh_currency` | `MXN` \| `USD` | `cur` | Sí | `operations[].currency` | Def. MXN |
+| `bh_condition` | `nueva\|usada\|desarrollo` | `condicion` | No | — (solo manual, metabox) | Condición del inmueble; la sync nunca la escribe |
 | `bh_price_unit` | string | — | No | `operations[].unit` | Solo informativo |
 | `bh_price_review` | `1` | — | No | calculado por la sync | Aviso de precio por m² sospechoso |
 | `bh_bedrooms`, `bh_bathrooms`, `bh_half_bathrooms`, `bh_parking` | number | `bed`, `bath`, `half`, `park` | Rec. (No en terreno) | `bedrooms`, `bathrooms`, `half_bathrooms`, `parking_spaces` | |
