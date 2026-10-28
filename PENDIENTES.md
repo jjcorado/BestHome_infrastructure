@@ -27,6 +27,7 @@ Documento vivo; describe lo que **falta**. Lo que ya existe está en [sitio-web/
 
 ## Fase 2 — Servidor y migración
 Pendientes del servidor (actualizado 2026-10-23):
+- [ ] **PHP del sitio en el VPS (aviso php2shell, CVE-2026-109618/109619/115560):** al dar de alta el sitio en CloudPanel usar PHP 8.4.27 o superior (8.4.27, 8.3.36 y 8.5.12 son las parchadas), poner `session.upload_progress.enabled = Off` en PHP Settings del sitio (no sirve `ini_set`), reiniciar PHP-FPM y revisar parches de PHP periódicamente. Local WP ya está en 8.4.27.
 - [ ] Dominio `besthomeqro.com` en Cloudflare (nube naranja, SSL *Full (strict)*, certificado de origen) y `real_ip` en Nginx.
 - [ ] Subdominios: `n8n.` y `evo.` con Cloudflare Access; `api.` público solo `/webhook/` con rate limit. Reverse proxies en CloudPanel.
 - [ ] Limitar 80/443 en UFW a los rangos de Cloudflare cuando el dominio ya pase por Cloudflare.
