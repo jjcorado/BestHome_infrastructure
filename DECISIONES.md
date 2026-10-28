@@ -8,6 +8,9 @@
 - Datos internos (ubicación o modelo, dueño, comisión, notas) se mantienen en WordPress, no en las notas de EasyBroker.
 - Rangos de precio del feed clasifican propiedades (uno por propiedad); la segmentación de personas por presupuesto se hace con audiencias.
 - Meta: anuncios a público en México sin categoría especial; campañas a público en EE. UU./Canadá requieren categoría de vivienda (separarlas).
+- Una propiedad nunca se borra: solo cambia de estado. Los `EB-` actuales son permanentes; las nuevas serán `BH-`. El inventario de referencia (visitas, cierres, reportes) es la base de WordPress, no EasyBroker.
+- Recorridos: se registran dentro del CRM (Recorrido → Visita), reacción en 3 niveles y comentarios abiertos; los datos de la casa los completa n8n por ID.
+- BigQuery guarda precio y comisión exactos y fechas exactas; la privacidad se apoya en no incluir identidad ni dirección y en el control de acceso. Al ejercer ARCO, se anonimiza la fila (conserva canal, precio, comisión, zona y mes). Cierres con operación se bloquean en el CRM, no se borran.
 - **Infraestructura (2026-10-23):** CloudPanel con Docker «al lado» (WordPress nativo, sin Coolify/Dokploy). Puertos de contenedores solo a `127.0.0.1`. CloudPanel (8443) solo por túnel SSH. Dominios separados: `n8n.` privado tras Access, `api.` público solo `/webhook/`, `evo.` tras Access.
 - **WhatsApp:** Evolution API en **solo lectura** (costo $0) para capturar historial al CRM; los asesores contestan a mano. Migrar a Cloud API oficial con *coexistence* (renta fija de un BSP, confirmar costos) solo cuando se necesiten plantillas o bot de primer contacto. GoWa queda como alternativa a probar con un número de prueba. n8n orquesta y escribe en EspoCRM por su API REST en cualquier caso.
 - **CRM:** EspoCRM autoalojado (instalado en el VPS).

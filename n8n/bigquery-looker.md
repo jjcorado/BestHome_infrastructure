@@ -1,8 +1,94 @@
 # Análisis de datos: BigQuery y Looker Studio
 
-Estado: **pendiente**.
+Estado: **diseño listo (2026-10-24); ejecución por fases**. Campos del CRM y del sitio que lo hacen posible: [../crm/campos-analitica.md](../crm/campos-analitica.md).
 
-- [ ] Proyecto de Google Cloud con facturación (el sandbox borra tablas a los 60 días).
-- [ ] GA4 → BigQuery (exportación diaria).
-- [ ] n8n copia `wp_bh_leads` (sin datos personales: los formularios los pierden a los 30 días de `synced_at`; copiar antes o excluirlos) y las etapas/ventas del CRM a BigQuery. Unión: `_ga` del lead = `user_pseudo_id` de GA4; `lead_id` = registro del CRM.
-- [ ] Looker Studio: embudo canal → visitas → leads → citas → ventas, por campaña y zona.
+## Principio
+BigQuery es una **base de análisis sin identidad**: nunca recibe nombre, teléfono, correo, mensajes, notas libres, calle/número ni IP. El CRM conserva la identidad y la llave para volver a ella. Todo se une por `ref_code` y por un `cliente_hash` interno.
+
+## Principios de la capa de datos
+- **Independiente de la herramienta**: BigQuery y Looker son el destino actual, no el modelo. El esquema de las tablas propias (`besthome_crm`) se documenta y versiona aquí, con nombres `snake_case` y tipos estándar, para leerlo igual desde Python, Power BI o Metabase. La lógica de negocio va en vistas SQL estándar, no en campos calculados de Looker.
+- **Inventario desde WordPress**: toda foto o consulta de propiedades sale de la base de WordPress (API de catálogo), nunca de EasyBroker, que es temporal.
+- **Un solo integrador**: n8n, por API y con lista blanca. Sin lecturas directas a MySQL del CRM.
+- **Modular**: una fuente o tabla por flujo de n8n, documentada en su propio archivo; agregar una fuente no cambia las demás.
+
+## 1. Qué conectar y cómo (todo al mismo dataset/región)
+| Fuente | Cómo | Cuándo |
+|---|---|---|
+| **GA4** | Admin › Vinculación con BigQuery, exportación **diaria** (no streaming: tiene costo). Trae `lead_generado` con `lead_id` = `ref_code` y `user_pseudo_id`. | **Ya.** No tiene histórico: cada día sin activar se pierde. |
+| **Search Console** | Configuración › Exportación masiva de datos a BigQuery (tablas `searchdata_url_impression`, `searchdata_site_impression`). Requiere dar permisos a la cuenta de servicio que indica Google. | **Ya.** Tampoco rellena histórico. |
+| **Google Ads** | BigQuery Data Transfer Service (conector Google Ads, diario; permite rellenar histórico reciente). Une por `gclid` (vista de clics) con el lead. | Cuando haya campañas activas. |
+| **Meta Ads** | Sin conexión nativa a BigQuery: n8n con la API de Marketing, o conector de pago en Looker. | Después. |
+| **CRM** | n8n → BigQuery (sección 2). | Cuando el CRM tenga datos reales. |
+| **Catálogo del sitio** | **No hay copia diaria.** WordPress ya guarda las fechas de publicación, archivado, actualización y el historial de precio de cada propiedad. El historial de precio se guarda **por evento** en WordPress (una fila por cambio de precio) y avisa por webhook a n8n, que la inserta en la tabla `historial_precios` de BigQuery (`eb_id`, precio anterior, precio nuevo, fecha). Permite medir cuántos leads llegaron tras una baja de precio. | Opcional, después. |
+
+Región: elegir **una** y usarla en todos los datasets (no se puede cambiar; las uniones exigen misma región). Verificar al crear que GA4, Search Console y el conector de Ads la aceptan; multi-región US es la opción más compatible.
+
+## 2. CRM → BigQuery con n8n (seudonimizado)
+Tablas del dataset `besthome_crm` (n8n inserta/actualiza; el CRM es la fuente):
+- `leads` (un registro por **contacto del cliente con el sitio**, no una entidad del CRM; n8n lo escribe al recibir cada `ref_code` y guarda a qué Búsqueda quedó ligado, incluso cuando el cliente repite): `ref_code`, `busqueda_id`, `cliente_hash`, fecha, canal de entrada (formulario/whatsapp/manual/referido), utm y click ids first/last (`gclid`, `gbraid`, `wbraid`, `fbclid` son identificadores de clic de anuncio, no de contacto), `ga_client_id`, `eb_id` de la propiedad de origen.
+- `busquedas`: operación, tipo de inmueble, zonas, presupuesto, condición, características deseadas, etapa actual, motivo de caída (catálogo).
+- `etapas_log` (eventos del embudo y de asignación): **una fila por cambio de etapa o de asesor asignado** (`tipo_evento` = etapa | asignacion), por evento (webhook de EspoCRM al cambiar `etapa` o asesor; n8n inserta la fila con su fecha; ver [plan-automatizaciones.md](plan-automatizaciones.md)). Una API REST solo devuelve el estado actual, así que esta historia no se puede reconstruir después: activarla desde el primer día. Activar también el registro de auditoría de EspoCRM en `etapa` (`busqueda_id`, etapa anterior/nueva, fecha). Se alimenta con el webhook de cambio de etapa del CRM; sin esto se pierde la historia.
+- `recorridos` y `visitas`: una fila por visita (`id_propiedad`, origen propia/otra, vista sí/no, calificación no le gustó/sin reacción/le gustó/le encantó, zona, tipo, condición, precio y m² al momento; sin comentarios libres) y una fila por recorrido. Ver [../crm/recorridos.md](../crm/recorridos.md).
+- `cierres`: ver campos en el CRM. Solo valores de catálogo y números.
+
+Reglas del flujo:
+- **Eficiencia de n8n**: `EXECUTIONS_DATA_SAVE_ON_SUCCESS=none` (no guardar historial de ejecuciones correctas); escrituras por evento (upsert de una fila) y solo una reconciliación semanal paginada por `modified_at`. Con decenas de cierres el volumen es chico; esto evita sorpresas al crecer.
+- **Sin capa intermedia extra**: el CRM ya tiene su respaldo diario (base de datos + copia fuera del VPS), y BigQuery se reconstruye desde el CRM. Única tabla que no se reconstruye es `etapas_log` (y la foto del catálogo): protegerlas con exportación mensual a un bucket de Cloud Storage (CSV o Parquet), que también sirve como salida si algún día se migra de herramienta.
+- **Lista blanca**: n8n arma cada fila campo por campo; nunca copia `payload_json` ni el registro completo.
+- `cliente_hash` = HMAC-SHA256 del ID interno del contacto con un secreto que **solo vive en n8n** (credencial); permite contar clientes únicos y recompras sin poder reconstruir la identidad.
+- Texto libre (notas, motivo de caída «otro», conversaciones) **no sale del CRM**.
+- **Qué sale de `cierres`:** zona y fraccionamiento exactos, fecha de cierre, precio y comisión **exactos** (sin redondeo: los reportes financieros no deben tener margen de error); nunca calle, número, clave catastral, nombre del dueño o constructor. Al ejercerse un derecho ARCO se anonimiza la fila (ver [../crm/privacidad-arco.md](../crm/privacidad-arco.md)).
+- Con pocos cierres, fraccionamiento + precio + fecha podría señalar una operación a quien conozca el coto: la protección real son los controles de acceso y la anonimización por solicitud. Los tableros compartidos con asesores agrupan por mes y zona.
+- Se carga por **upsert por llave** (`ref_code`, `busqueda_id`, `cierre_id`) para poder corregir y para borrar a petición ARCO (`DELETE … WHERE cliente_hash = …`).
+- Los leads de WhatsApp usan el `GET /lead/{ref}` que n8n ya consulta (sin datos personales). Los clics sin mensaje (`local`, se borran a los 30 días) ya están en GA4 como `lead_generado`, no hace falta copiarlos.
+
+## 2b. Reportes objetivo
+- **CAC y retorno por rango de precio**: gasto (Google Ads/Meta por `campaign_id`) ÷ cierres, por rango de precio de cierre. Requiere que `utm_campaign` use la misma convención que el nombre/ID de campaña en Ads y que el auto-etiquetado de Google Ads esté activo (`gclid`).
+- **Embudo y días a cierre** por asesor, tipo de propiedad y fuente (`etapas_log`).
+- **Demanda vs. oferta**: búsquedas (CRM) y vistas de fichas (GA4 `view_item`) por zona/rango de precio contra el catálogo actual, consultado cuando se necesita. Para filtros usados en el catálogo falta un evento (`search` está pendiente en [../sitio-web/GTM.md](../sitio-web/GTM.md)).
+- **Propiedades estancadas**: vistas y leads por `eb_id` contra días publicada (fechas que ya guarda WordPress) → candidatas a ajuste de precio.
+- **Recorridos**: motivos de descarte, casas más mostradas vs. vendidas.
+
+## 2c. Qué guardar hoy que luego no se puede reconstruir
+Estado de etapas con fecha (`etapas_log`), fechas de publicación, archivado y precio de cada propiedad (ya en WordPress), gasto diario por campaña (Ads/Meta), atribución first/last del lead (ya existe), fecha de la primera respuesta del cliente, asesor asignado en cada cambio, y fecha de publicación y de archivado de cada propiedad. Los reportes finales se definen después; estos datos se juntan desde ahora.
+Reportes de negocio a definir: ingresos por cliente y por asesor en el tiempo (comisión de la inmobiliaria por cierre; clientes recurrentes por `cliente_hash`), cierres por asesor y por periodo, y lead → cierre por fuente incluyendo los perdidos y sin respuesta.
+
+## 2d. Atención, asignación y pérdidas (decidido 2026-10-24)
+- **Primera respuesta** (`fecha_primera_respuesta`): se llena sola por fórmula de EspoCRM cuando la Búsqueda sale de «Nuevo» por primera vez. No depende de Evolution API (que, cuando exista, solo precisará la hora real del primer mensaje).
+- **Intentos de contacto**: solo si salen solos (conteo de mensajes salientes antes de la primera respuesta del cliente). Si no, no se pide.
+- **Reasignación**: el mismo webhook registra cada cambio de asesor en `etapas_log`, para que la conversión y los tiempos por asesor no se distorsionen.
+- **Catálogo `motivo_caida`** (una opción, un toque, con «otro»): no contesta o datos falsos | presupuesto insuficiente | buscaba otra zona o producto | compró o rentó con otro | financiamiento no aprobado | se enfrió | otro. En las vistas se agrupa en *calidad del lead* (marketing) vs *falla de venta* (comercial).
+- **No se guarda inventario disponible por recorrido.** Si algún día se necesita saber qué había disponible en una fecha, se aproxima con las fechas de publicación y archivado que ya guarda WordPress; no se guarda una copia diaria.
+- **Métricas que sí**: CAC por fuente y rango de precio, costo por lead calificado, tasa de «no contesta/datos falsos» por campaña, motivo de pérdida dominante por campaña, días lead → cierre por zona, conversión y ticket/comisión por asesor, macro-embudo lead → recorrido → cierre. **Recurrencia/LTV: no es reporte por ahora**; se conserva `cliente_hash` (no cuesta nada) por si los referidos se analizan después.
+
+## 3. Unir origen con cierre
+`ref_code` viaja: clic/formulario → `lead_generado.lead_id` en GA4 → chat de WhatsApp (`Ref:`) → `ref_code` en la Búsqueda del CRM (no hay entidad Lead) → Cierre. En BigQuery: `GA4 (lead_id) ⇄ leads (ref_code) ⇄ busquedas ⇄ cierres`, y `leads.gclid` ⇄ tabla de clics de Google Ads para campaña/palabra clave. La atribución first/last del propio payload del lead es la fuente principal; GA4 completa sesiones que no generaron lead.
+Límites: contactos sin `Ref:` (llamada, recomendación) entran como origen `manual`/`referido`; un cliente con varios `ref_code` se une por `cliente_hash` y el origen es el del primero; consentimiento de cookies y bloqueadores dejan huecos.
+
+## 4. Looker Studio y costos
+- Looker Studio es gratis. Conectar a **vistas** de BigQuery (no a tablas crudas), con filtro de fecha obligatorio; el caché de Looker evita consultas repetidas.
+- BigQuery gratis cada mes: 10 GB de almacenamiento y 1 TiB de consultas; la exportación diaria de GA4 y de Search Console no cobra carga. Un sitio de este tamaño queda muy por debajo. Verificar cifras vigentes en la página de precios de Google Cloud.
+- Crear el proyecto **con facturación** (el sandbox borra tablas a los 60 días), poner **alerta de presupuesto** (p. ej. USD 5) y **cuota diaria de bytes consultados** en el proyecto. El riesgo de costo es una consulta mal hecha, no el almacenamiento.
+- Exportación diaria de GA4: límite de 1 millón de eventos por día en propiedades estándar.
+
+## 5. Privacidad
+- Aviso de privacidad (pendiente de redactar, ver [../PENDIENTES.md](../PENDIENTES.md)): añadir finalidad de **análisis estadístico y de mercado con información seudonimizada**, proveedores (Google Analytics, Google Cloud/BigQuery, Google Ads, Meta), cookies de atribución y plazos. Subir `BH_PRIVACY_VERSION`.
+- Seudonimizado no es anónimo: mientras el CRM guarde la correspondencia, siguen siendo datos personales para efectos legales; por eso hay borrado por `cliente_hash` y acceso restringido. Conviene revisión del texto con asesor legal.
+- No enviar a GA4 nombre, teléfono ni correo (prohibido por sus términos); `ref_code` es un código aleatorio y es válido.
+- Criterio práctico: no se cruzan juntos nombre/teléfono del cliente con la dirección exacta de la casa; BigQuery lleva `cliente_hash` + zona/fraccionamiento/precio. Es el esquema menos riesgoso, pero sigue siendo seudonimizado (no anónimo) y conviene revisión legal del aviso.
+- Cuentas con acceso al proyecto de Google Cloud: solo las de la empresa, con verificación en dos pasos.
+
+## Orden de pasos
+**Ahora (sin depender del CRM ni de n8n):**
+1. Proyecto de Google Cloud con facturación, alerta de presupuesto y cuota diaria; elegir región.
+2. Activar exportación diaria GA4 → BigQuery.
+3. Activar exportación masiva de Search Console.
+4. Crear en el CRM los campos y entidades de [../crm/campos-analitica.md](../crm/campos-analitica.md) antes de capturar clientes reales.
+5. Verificar en GA4 DebugView que `lead_generado` trae `lead_id`.
+
+**Después:**
+6. Conector Google Ads (al lanzar campañas).
+7. Flujo n8n CRM → BigQuery (`etapas_log` primero, luego el resto) y, si se necesita, cambios del catálogo (solo propiedades modificadas).
+8. Vistas y tablero Looker: embudo canal → visita → lead → cita → cierre por campaña y zona; precios y comisión por zona/tipo/condición; qué características se venden; motivos de caída; consultas SEO por página.
+9. Meta Ads a BigQuery y conversiones offline ([conversiones-offline.md](conversiones-offline.md)), que reutilizan los mismos campos.
+10. Hoja de recorrido móvil en el sitio ([../crm/recorridos.md](../crm/recorridos.md)); mientras tanto, las visitas se capturan en el CRM.
