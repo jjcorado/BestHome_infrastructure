@@ -10,7 +10,7 @@ Documento vivo; describe lo que **falta**. Lo que ya existe está en [sitio-web/
 
 - **Fase 1 (local): terminada.** Seguridad (IP, SMTP, plugin protegido), outbox de leads `wp_bh_leads` con reintentos, atribución first/last, WhatsApp con `Ref: R-XXXXXX`, diseño (hero, modales, header, banda de contacto), aviso de privacidad enlazado, eventos de dataLayer, remarketing (view_item + feed alineados), precio por m², verificación de precios, notas internas, visibilidad (pública / privada / archivada), orden manual del catálogo (`bh_sort_date`).
 - **Fase 2 (servidor y migración): en curso.** VPS asegurado, Docker, n8n y EspoCRM instalados (ver [servidor/ESTADO-ACTUAL.md](servidor/ESTADO-ACTUAL.md)). Falta dominio, Cloudflare y migrar el sitio.
-- **Fase 3 (n8n, CRM, conversiones offline): iniciada.** n8n y EspoCRM instalados sin flujos ni configuración; falta todo lo demás.
+- **Fase 3 (n8n, CRM, conversiones offline): iniciada.** n8n y EspoCRM instalados; EspoCRM con estructura base (ver [crm/CONFIGURACION.md](crm/CONFIGURACION.md)); faltan usuarios reales, usuario API, flujos de n8n y lo demás.
 
 ---
 
