@@ -11,6 +11,7 @@ includes/leads.php             BH_EB_Leads        — Endpoint REST de leads
 includes/leads-admin.php       BH_EB_Leads_Admin  — Propiedades › Leads
 includes/attr.php              BH_EB_Attr         — Endpoint de atribución (cookie bh_attr)
 includes/admin.php             BH_EB_Admin        — Página Ajustes › EasyBroker Sync
+includes/price-history.php     BH_EB_Price_History — tabla bh_price_history, endpoint /precios y action bh_price_changed
 includes/price-checks.php      BH_EB_Price_Checks — Propiedades › Verificación de precios y tabla bh_price_checks
 includes/rest-catalogo.php     BH_EB_Rest_Catalogo — API de catálogo para n8n / IA (ver API-CATALOGO.md)
 includes/google-places.php     BH_EB_Google_Places — Reseñas de Google (cron diario; ver ARQUITECTURA.md)
@@ -33,7 +34,7 @@ README.txt                     Instalación y constantes de wp-config.php
 | | `manage_edit-propiedad_sortable_columns` + `posts_clauses` | ordenar por Precio (`bh_price`), Zona (padre › colonia, LEFT JOIN de términos), Modificada, Orden (`bh_sort_date`, LEFT JOIN) y Visibilidad (`bh_visibility`, sin meta = `publica`) |
 | | `post_row_actions` + `admin_footer-edit.php` | acciones bajo el título: “Copiar enlace” (URL pública; respaldo con `<textarea>` en HTTP), “PDF (Marca)” (`?print=brand`) y “PDF (Sin marca)” (`?print=nobrand`, nueva pestaña) y “Subir al inicio” (`admin-post.php?action=bh_bump`, nonce `bh_bump_{ID}` + `edit_post`: `bh_sort_date` = ahora UTC; también como botón AJAX en Verificación de precios; con la opción `bh_bump_on_price_drop` la sync lo hace sola cuando baja el precio) |
 | | `add_meta_boxes` + `save_post_propiedad` (`save_badge`) | metabox lateral “Etiqueta Destacada”: `<input list>` + `<datalist>` (Roof garden, Cuarto de servicio, Recámara en planta baja, De una planta, Alberca en fraccionamiento, Amplio jardín) o texto libre ≤ 40; meta `_bh_badge` (vacío = se borra), nonce `bh_badge`. La tarjeta del catálogo solo muestra esta etiqueta (ya no hay “Roof Garden” automático). |
-| | `rest_api_init` → `register_rest_field` | campos de solo lectura en `/wp-json/wp/v2/propiedad`: `bh_eb_id`, `bh_operation`, `bh_price` (null si el precio está oculto), `bh_bedrooms`, `bh_bathrooms`, `bh_half_bathrooms`, `bh_construction`, `bh_lot`, `bh_zona` (“Padre › Colonia”) |
+| | `rest_api_init` → `register_rest_field` | campos de solo lectura en `/wp-json/wp/v2/propiedad`: `bh_eb_id`, `bh_operation`, `bh_price` (null si el precio está oculto; en `/wp/v2` no hay llave), `bh_bedrooms`, `bh_bathrooms`, `bh_half_bathrooms`, `bh_construction`, `bh_lot`, `bh_zona` (“Padre › Colonia”) |
 | | `pre_get_posts` (prioridad 20) + `posts_search` | si `s` parece un ID (una palabra con dígitos: EB-JJ8368, JJ8368, 8368) también busca en `bh_eb_id` / `bh_internal_id`; aplica en wp-admin y en el catálogo (`?q=`) |
 | | `wp_ajax_bh_toggle_meta` + `admin_footer-edit.php` | toggles AJAX Destacada/Lujo en la lista |
 | `BH_EB_Sync` | `cron_schedules` | intervalo `bh_fifteen` (15 min) |
@@ -106,3 +107,6 @@ Zonas padre (`BH_EB_Sync::zone_parents()`): Juriquilla · Querétaro Moderno · 
 6. Guarda `bh_eb_last_sync` (−120 s de traslape) y escribe en el log (`bh_eb_log`, 40 líneas) + resumen de features/ubicaciones sin mapear.
 
 Opciones: `bh_eb_last_sync`, `bh_eb_log`, `bh_eb_api_key`, `bh_terms_seeded`, `bh_visibility_db` (`'2'`: migración única en `init` de la antigua meta `bh_archived = 1` a `bh_visibility = archivada`), `bh_blog_cats_seeded` (tema). Archivos: `uploads/bh-ficha/` (caché de fotos de la ficha PDF; se puede borrar, se regenera al imprimir). Transients: `bh_eb_sync_lock`, `bh_eb_test_out`, `bh_lead_{md5(ip)}`, `bh_lead_wa_{md5(ip)}`, `bh_lead_alert_lock`, `bh_attr_{md5(ip)}`, `bh_leads_notice_{user_id}`, `bh_feed_ads` y `bh_v_{md5(ip|id)}` (tema).
+
+
+**No se borran propiedades**: `pre_trash_post` y `pre_delete_post` devuelven false para `propiedad` (salvo auto-drafts) y se muestra un aviso; solo se cambia `bh_visibility`. **Condición**: metabox lateral «Condición» (`save_condition`, nonce `bh_condition`) guarda `bh_condition` (`nueva | usada | desarrollo`); la sync no la escribe.

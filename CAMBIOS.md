@@ -2,6 +2,9 @@
 
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
+## 2026-10-27
+- Plugin (commit 701c951): API de catálogo con filtro `eb_id`, precio real con llave + `precio_visible` y `condicion`; historial de precios (`bh_price_history`, `GET /precios`, action `bh_price_changed`); bloqueo de papelera/borrado de propiedades; meta `bh_condition`. Documentado en `sitio-web/API-CATALOGO.md`, `PLUGIN.md` y `CONTRATO-DATOS.md`.
+
 ## 2026-10-25 (landings)
 - Plantilla `Landing` (tema 0.1.54): HTML y CSS propios por página, sin header ni footer; shortcodes `[bh_casas]`, `[bh_formulario]`, `[bh_campos_ocultos]`; noindex por defecto. `lead_generado` trae `origin`. Plugin: `leads.php` guarda campos `x_*` en `payload.extra`. Reglas en `sitio-web/LANDINGS.md`.
 
