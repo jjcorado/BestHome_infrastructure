@@ -20,6 +20,8 @@ Qué hay que cambiar en concreto, en qué orden y quién. Diseño de respaldo: [
 | B7 | Después: endpoint de suscripción al boletín (doble confirmación vía n8n) | Fase de correo | nuevo |
 Validación: `php -l` en cada archivo y commit en `jjcorado/besthome-eb-sync`. Tras B5/B6, guardar Ajustes › Enlaces permanentes solo si se tocan rewrites (no debería).
 
+**Estado 2026-10-28:** B1–B5 hechos en el plugin (commit 701c951 en `besthome-eb-sync`, `php -l` ok). B2: el endpoint ya exigía llave `X-BH-Key`, así que el precio real sale siempre. B3 muestra aviso admin. B4 deja la tabla `bh_price_history` (se crea al entrar a wp-admin), `GET /precios?desde=` y la acción `bh_price_changed`. B5 se devuelve como `condicion`. Falta probar en el sitio. B6 y B7 pendientes.
+
 ## C. Cambios en el tema
 - Aviso de privacidad (texto): finalidades secundarias de marketing, herramientas de IA de terceros, Google Cloud/BigQuery, proveedor de correo, plazos de retención, **medio para ejercer ARCO** (correo dedicado). Subir `BH_PRIVACY_VERSION` (hoy `'1'`). Requiere revisión legal.
 - Mostrar `bh_condition` en la ficha solo si se decide (opcional).
