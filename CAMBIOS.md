@@ -22,6 +22,14 @@ Bitácora de cambios de **infraestructura y documentación** (los cambios de có
 - Recorridos rediseñados dentro del CRM (Recorrido → Visita, reacción de 3 niveles, comentarios abiertos); se descarta la hoja en wp-admin. Se añaden leads perdidos/sin respuesta, configuración de n8n (sin historial de ejecuciones exitosas, cargas paginadas), `etapas_log` por evento y decisión de propiedades que no se borran.
 - Analítica: primera atención y reasignación automáticas, catálogo `motivo_caida` (calidad del lead vs falla de venta), sin inventario por recorrido, métricas elegidas (sin LTV), y reglas de BigQuery para cierres (semana, precio y comisión redondeados). Luego Javier descartó el redondeo: precio y comisión exactos.
 - Nuevo `crm/privacidad-arco.md`: baja de marketing, lista de exclusión, bloqueo legal en el CRM y anonimización en BigQuery al ejercer ARCO.
+## 2026-10-25 (landings)
+- Plantilla `Landing` (tema 0.1.54): HTML y CSS propios por página, sin header ni footer; shortcodes `[bh_casas]`, `[bh_formulario]`, `[bh_campos_ocultos]`; noindex por defecto. `lead_generado` trae `origin`. Plugin: `leads.php` guarda campos `x_*` en `payload.extra`. Reglas en `sitio-web/LANDINGS.md`.
+
+## 2026-10-25 (catálogo: filtros)
+- Tema (versión por confirmar al integrar con landings; ambos trabajos usaron 0.1.54): los chips de Precio, Construcción y Terreno muestran el rango elegido; «Limpiar filtros» en escritorio es el botón azul compacto de móvil; los pares mín/máx llevan botón «Aplicar» (ya no se envían al perder foco).
+- Rendimiento: los filtros numéricos (`pmin/pmax/rec/ban/cmin/cmax/tmin/tmax`) se resuelven con una sola SQL sobre `postmeta` y se pasan como `post__in` (antes un JOIN por filtro). La visibilidad no se duplica en la réplica de `bh_catalog_amenity_slugs()` (`bh_vis_done`). Medido en Local: 6 filtros 18 s → 0.55 s.
+- Nota de entorno: Local WP trae `pm.max_children = 2`; una consulta pesada congela el sitio. Conviene 6–8 en Local.
+
 ## 2026-10-23 (estado del VPS)
 - Nuevo `servidor/ESTADO-ACTUAL.md` con el estado real: UFW, Fail2Ban, SSH solo con llave, CloudPanel por túnel SSH, Docker, n8n 2.44.6 y EspoCRM 10.0.11 con límites y backups locales.
 - Acuerdos finales de dominios, Evolution API (solo lectura) y CRM registrados en `DECISIONES.md`, `servidor/ARQUITECTURA-VPS.md` y `evolution-api/README.md`.

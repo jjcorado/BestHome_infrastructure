@@ -13,6 +13,7 @@ Repos de código: tema `jjcorado/besthome-theme` · plugin `jjcorado/besthome-eb
 | [sitio-web/LEADS.md](sitio-web/LEADS.md) | Endpoint de leads, outbox, reintentos, atribución |
 | [sitio-web/CONTRATO-DATOS.md](sitio-web/CONTRATO-DATOS.md) | Campos de propiedad, IDs, estados, reglas de la sync |
 | [sitio-web/API-CATALOGO.md](sitio-web/API-CATALOGO.md) | API REST de catálogo para n8n / IA |
+| [sitio-web/LANDINGS.md](sitio-web/LANDINGS.md) | Landings de campaña: plantilla, reglas de código para Claude Design, conversión |
 | [sitio-web/GTM.md](sitio-web/GTM.md) | Plan de GTM / GA4 / conversiones |
 | [servidor/ESTADO-ACTUAL.md](servidor/ESTADO-ACTUAL.md) | Estado real del VPS hoy |
 | [servidor/](servidor/) | Arquitectura VPS, Cloudflare, Docker, CloudPanel y checklist de migración |
