@@ -56,6 +56,8 @@ Checklist completo en [servidor/FASE2-MIGRACION.md](servidor/FASE2-MIGRACION.md)
 
 ## Independencia de EasyBroker (sin fecha)
 
+Diseño completo (pantallas, fotos, migración, características, fases y preguntas abiertas): [sitio-web/ALTA-PROPIEDADES.md](sitio-web/ALTA-PROPIEDADES.md). Orden propuesto: 1 fotos y migración → 2 catálogo de características → 3 asistente de 4 pasos → 4 ubicación aproximada → 5 corte de EasyBroker.
+
 - [ ] **Migrar fotos antes de cancelar EasyBroker** (hoy se sirven desde `assets.easybroker.com`; al cancelar desaparecen del sitio y del feed). Estructura: `uploads/propiedades/{ID}/`, adjuntos de WordPress, original máx. 2560 px.
 - [ ] Generador de ID propio `BH-XX0000` (aleatorio, único, sin I ni O), guardado en `bh_eb_id`.
 - [ ] Interfaz de captura de propiedades (wp-admin u otra), con `bh_source = 'propio'`.

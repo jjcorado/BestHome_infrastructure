@@ -2,6 +2,9 @@
 
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
+## 2026-11-05
+- Nuevo `sitio-web/ALTA-PROPIEDADES.md`: diseño (sin implementar) de la independencia de EasyBroker: asistente de alta en 4 pasos, fotos propias (adjuntos de WordPress, máx. 40, WebP, alt automático), migración idempotente de fotos y «Pasar a Best Home» (`bh_source`), catálogo de características editable con «usar en filtros» y fases. Preguntas abiertas al final del documento.
+
 ## 2026-10-28
 - Estado de EspoCRM registrado en `PLAN-IMPLEMENTACION.md` sección D (hecho / sin confirmar / pendiente).
 - Plugin `besthome-eb-sync` (commit 701c951): B1 parámetro `eb_id` exacto, B2 precio real + `precio_visible`, B3 bloqueo de papelera/borrado de propiedades, B4 historial de precios (`bh_price_history`, `GET /precios`, acción `bh_price_changed`), B5 meta `bh_condition` (`condicion` en la API). Falta probar en el sitio; B6 pendiente de confirmar.

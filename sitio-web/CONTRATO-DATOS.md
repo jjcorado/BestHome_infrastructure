@@ -79,6 +79,7 @@ Detalle del flujo: [Flujo de sincronización](PLUGIN.md#flujo-de-sincronización
 - **`post_date`**: en actualizaciones se reenvía la fecha existente (sin ella `wp_insert_post()` pondría “ahora”); en el alta se usa `created_at` de EB.
 
 ### Fotos (pendiente de implementar)
+Diseño detallado (galería `bh_gallery`, alt automático, migración): [ALTA-PROPIEDADES.md](ALTA-PROPIEDADES.md).
 - Destino: `uploads/propiedades/{ID}/` (`{ID}` = `EB-…` o `BH-…`), como **adjuntos de WordPress** del post.
 - Original de máximo **2560 px** (lado largo); generar solo los tamaños que usa el sitio (hoy `bh-card` 800×600 y `large`); el resto se desactiva para esta carpeta.
 - Las de EasyBroker se migran con su ID `EB-…` **antes** de cancelar EasyBroker; hoy se sirven desde `assets.easybroker.com` (`bh_images`) y solo la ficha PDF tiene copia local ([Impresión / PDF](ARQUITECTURA.md#impresión--pdf-ficha-técnica)).
