@@ -1,6 +1,6 @@
 # Alta y edición de propiedades sin EasyBroker (diseño)
 
-Estado: **diseño, sin implementar** (2026-11-05). Decisión de origen: Best Home pasa a ser la fuente de datos y fotos de las propiedades. Referencia de interfaz: capturas del editor de EasyBroker (4 pasos); no se copia tal cual, se conservan las mejoras propias.
+Estado: **diseño, sin implementar** (2026-11-05). Decisión de origen: Best Home pasa a ser la fuente de datos y fotos de las propiedades. Referencia de interfaz: capturas del editor de EasyBroker; no se copia tal cual, se conservan las mejoras propias. Actualización 2026-11-05: el alta es en **2 pasos** (no 4) y la lista tiene **búsqueda con filtros avanzados** (sección 1.1).
 
 Lo que ya está definido y no se repite aquí: [CONTRATO-DATOS.md](CONTRATO-DATOS.md) (campos, IDs, estados, reglas de la sync, carpeta de fotos), [PLUGIN.md](PLUGIN.md) (CPT, metas, taxonomías) y [ARQUITECTURA.md](ARQUITECTURA.md) (catálogo y filtros). Este documento define **pantallas, fotos, migración, características y fases**.
 
@@ -15,19 +15,28 @@ Todo vive dentro del plugin (`BH_EB_*`), en el menú **Propiedades**, para no de
 ### 1.1 Lista de propiedades (mejorar la actual)
 La lista nativa ya tiene columnas, orden y acciones. Cambios:
 - Botón principal **«Nueva propiedad»** que abre el asistente (no el editor de bloques).
-- Filtros arriba: estado (Borrador / Publicada / Privada / Archivada), operación, tipo, origen (EasyBroker / Propia) y búsqueda por ID, título o clave interna (ya existe).
+- **Buscador con panel «Filtros»** (botón que abre un panel lateral; en móvil, pantalla completa) y chips de filtros activos con «Limpiar». Reutiliza la lógica del catálogo público, pero **sin restricciones de visibilidad**: ve todas las propiedades (incluidas privadas, archivadas y borradores) y **todas** las características, no solo las de `bh_filtro = 1`. Filtros:
+  - **Estado** (Borrador / Publicada / Privada / Archivada), origen (EasyBroker / Propia), operación y tipo.
+  - **Ubicación, selección múltiple**: zonas padre y colonias (`zona`, `tax_query` con `IN`; al marcar un padre se pueden marcar todas sus colonias).
+  - **Características: todas** las del catálogo (sección 4), agrupadas por categoría, con buscador de texto; modo **todas** (AND) o **cualquiera** (OR).
+  - **Precio** (mín./máx., por moneda), **construcción** y **terreno** (m²), **recámaras**, **baños**, **estacionamientos** (mínimo, «3 o más»), condición, destacada/lujo.
+  - **Etiquetas internas** (ver abajo) y **fecha** (creada, modificada, precio verificado, sin foto suficiente, sin verificar precio hace > N días).
+  - **Búsqueda de texto interna**: un solo cuadro que busca en ID (`bh_eb_id`, `bh_internal_id`), título, **dueño o constructor** (`bh_priv_owner_name`, teléfono), **dirección y «ubicación o modelo»** (`bh_priv_address`, calle/colonia privadas), **desarrollo/constructor** (campo `bh_priv_developer`, nuevo, privado, con autocompletar de los ya usados) y **notas internas** (`bh_priv_notes`). Esta búsqueda solo corre en wp-admin con `edit_posts`; nunca se expone en el catálogo público, REST pública, feeds ni webhooks.
+  - **Etiquetas internas**: meta `bh_priv_tags` (lista; autocompletar) o término de una taxonomía privada `bh_etiqueta` (`public => false`, solo admin); recomendación: taxonomía privada porque permite filtrar, contar y renombrar. Sirve para desarrollos, constructores, «oportunidad», «pedir actualización de precio», etc.
+  - Las búsquedas se pueden **guardar** como vistas (por usuario, `user_meta bh_saved_views`) y se pueden **exportar a CSV** (sin teléfonos del dueño salvo administrador).
+  - Implementación: `pre_get_posts` + `posts_clauses` en `edit-propiedad` (mismo patrón que la búsqueda por ID que ya existe), parámetros GET para que la URL sea compartible y funcione el botón «atrás»; JS plano para el panel; sin jQuery.
 - Columna **Completitud** (círculo verde/ámbar/rojo): verde = cumple lo necesario para publicar; ámbar = faltan recomendados (fotos < 10, sin mapa, sin zona); rojo = falta algo obligatorio. Tocarla abre el paso que falta.
 - Acción por fila **Editar** → asistente; **Duplicar** (copia datos y características, **sin** fotos ni ID; crea borrador con ID `BH-` nuevo); **Archivar** (ya existe vía visibilidad).
 - En móvil, la lista pasa a tarjetas (foto, título, precio, estado, ID). El editor nativo de WordPress queda como respaldo («Edición avanzada») mientras se estabiliza.
 
 No se replican de EasyBroker: Historial, Interesados, Listas, Portales conectados, «Sin asignar» (asesor), Crear reporte. Leads, visitas e interesados viven en el **CRM** ([crm/](../crm/)); el asesor por propiedad se decide con el CRM (ver preguntas).
 
-### 1.2 Asistente de alta/edición en 4 pasos
-Pasos como EasyBroker: **1 Lo esencial · 2 Detalles · 3 Multimedia · 4 Publicación**. Barra de progreso arriba; botones fijos abajo **Guardar y continuar** / **Guardar** / **Cancelar**. Cada «Guardar» escribe por REST (`besthome/v1/admin/propiedad/{id}`, nonce + `edit_posts`) sin recargar y deja la propiedad en **borrador** hasta el paso 4. Se puede salir y volver sin perder nada; los pasos son navegables en cualquier orden una vez creado el borrador.
+### 1.2 Asistente de alta/edición en 2 pasos
+Por decisión de Javier (2026-11-05) son **2 pasos**: **1 Información** (todo lo que describe la propiedad: datos, precio, ubicación, detalles, características) y **2 Multimedia y publicación** (fotos, video, tour 360, documentos y estado). Las secciones internas de EasyBroker (Lo esencial, Detalles, Multimedia, Publicación) pasan a ser **bloques plegables** dentro de esos dos pasos, para no perder el orden mental ni alargar la pantalla en el celular. Barra de progreso arriba; botones fijos abajo **Guardar y continuar** / **Guardar** / **Cancelar**. El paso 1 se puede guardar por **bloque** (cada bloque tiene su «Guardar» y hay un «Guardar y continuar» al final). Cada guardado escribe por REST (`besthome/v1/admin/propiedad/{id}`, nonce + `edit_posts`) sin recargar y deja la propiedad en **borrador** hasta el paso 4. Se puede salir y volver sin perder nada; los dos pasos son navegables en cualquier orden una vez creado el borrador.
 
 El ID `BH-XX0000` se asigna **en el primer guardado** (así el slug `titulo-bh-xx0000`, las fotos y el texto alternativo nacen estables; el slug **no** cambia si luego se edita el título). Edición de una propiedad `EB-` ya migrada usa el mismo asistente.
 
-#### Paso 1 — Lo esencial
+#### Paso 1 — Información (bloques A «Lo esencial», B «Detalles» y C «Características»)
 | Campo | Meta / destino | Oblig. | Validación |
 |---|---|---|---|
 | Tipo de propiedad | término `tipo_propiedad` | Sí | casa · departamento · terreno (ver pregunta sobre más tipos) |
@@ -46,19 +55,18 @@ El ID `BH-XX0000` se asigna **en el primer guardado** (así el slug `titulo-bh-x
 | Estado / Municipio / Colonia | `bh_location_name` («Colonia, Municipio, Estado») + término `zona` (padre › colonia) | Sí | listas dependientes; el padre sale de `zone_parents()`; colonia nueva = se crea el término (solo administrador) |
 | Mapa | `bh_lat`, `bh_lng` (públicas) | Rec. | ver 1.3 |
 
-Para terreno, el paso 2 oculta recámaras/baños/estacionamientos; `bh_lot` pasa a obligatorio.
+Para terreno, el bloque B oculta recámaras/baños/estacionamientos; `bh_lot` pasa a obligatorio.
 
-#### Paso 2 — Detalles (todo opcional, con aviso «cada campo vacío es una búsqueda menos»)
+**Bloque B — Detalles** (todo opcional, con aviso «cada campo vacío es una búsqueda menos»)
 Recámaras, baños, medios baños, estacionamientos (`bh_bedrooms`, `bh_bathrooms`, `bh_half_bathrooms`, `bh_parking`; enteros ≥ 0, medios baños por 1); construcción `bh_construction` y terreno `bh_lot` (m², > 0); campos nuevos: superficie no cubierta `bh_uncovered`, fondo `bh_lot_depth`, frente `bh_lot_front`, año de construcción `bh_year_built`, pisos del edificio `bh_floors` (ya existe), disposición (`bh_layout`: interior/exterior/frente…), orientación `bh_orientation`; **clave interna** `bh_internal_id` (ya existe, búsqueda) y **código de la llave** `bh_priv_key_code` (privado). Etiqueta destacada `_bh_badge` y «Destacada / Lujo» se quedan en el metabox lateral actual (o se mueven aquí, mismo contenido).
-Debajo: **Características** (sección 4), con casillas agrupadas por categoría y buscador de texto.
+**Bloque C — Características** (sección 4), con casillas agrupadas por categoría y buscador de texto.
 
 Sugerencia de lógica (no obligatoria): si `bh_construction` > `bh_lot` en casa de una planta, avisar; si el precio por m² queda fuera del rango de la zona, mostrar el aviso de `bh_price_review` que ya existe.
 
-#### Paso 3 — Multimedia
-Fotos (sección 2), **video de YouTube** (`bh_video_url`, valida que sea youtube.com/youtu.be/shorts y extrae el ID), **tour virtual** (`bh_tour_url`, https obligatorio; solo dominios permitidos: Matterport, Kuula, 3DVista, YouTube) y **documentos públicos** (planos, brochure, lista de precios): PDF ≤ 10 MB, hasta 5, meta `bh_docs` = `[{att_id, titulo}]`, se muestran como «Descargas» en la ficha. Lo que no deba ser público (contratos, escrituras) va en `bh_priv_onedrive` / adjuntos privados, nunca aquí. Documentos públicos es opcional y puede entrar en una fase posterior.
+#### Paso 2 — Multimedia y publicación
+**Bloque D — Multimedia.** Fotos (sección 2), **video de YouTube** (`bh_video_url`, valida que sea youtube.com/youtu.be/shorts y extrae el ID), **tour virtual** (`bh_tour_url`, https obligatorio; solo dominios permitidos: Matterport, Kuula, 3DVista, YouTube) y **documentos públicos** (planos, brochure, lista de precios): PDF ≤ 10 MB, hasta 5, meta `bh_docs` = `[{att_id, titulo}]`, se muestran como «Descargas» en la ficha. Lo que no deba ser público (contratos, escrituras) va en `bh_priv_onedrive` / adjuntos privados, nunca aquí. Documentos públicos es opcional y puede entrar en una fase posterior.
 
-#### Paso 4 — Publicación
-Resumen con checklist (obligatorios en rojo, recomendados en ámbar), **vista previa** (abre la ficha pública con `?preview` en pestaña nueva) y selector de estado:
+**Bloque E — Publicación.** Resumen con checklist (obligatorios en rojo, recomendados en ámbar), **vista previa** (abre la ficha pública con `?preview` en pestaña nueva) y selector de estado:
 - **Borrador** (`post_status = draft`) · **Publicada** (`publish` + `bh_visibility = publica`) · **Privada** (`publish` + `privada`; abre por URL con `noindex`, útil para compartir con un cliente) · **Archivada** (`archivada`; vendida o retirada, pide motivo opcional).
 - **No se puede publicar** sin: tipo, operación, título, precio (o «consultar»), moneda, zona/ubicación y **≥ 1 foto**. Con < 10 fotos o sin descripción se permite, con aviso.
 - Bloque **interno** (no público): descripción privada = `bh_priv_notes` (el equivalente a «Descripción privada» de EB, con dueño, modelo, comisión, historial de precio), dueño `bh_priv_owner_name` / `bh_priv_owner_phone`, comisión `bh_priv_commission`, OneDrive `bh_priv_onedrive`, fecha de verificación de precio.
@@ -92,7 +100,7 @@ Resumen con checklist (obligatorios en rojo, recomendados en ámbar), **vista pr
 - **Servidor**: genera solo `bh-card` (800×600 recorte), `large` (1600) y `bh-thumb` (400) en WebP; se desactivan los demás tamaños intermedios para esta carpeta. 
 - Subida en paralelo (3 a la vez) con barra por foto, reintento si falla y cola que sobrevive a recargar.
 
-### 2.4 Interfaz (paso 3)
+### 2.4 Interfaz (paso 2, bloque D)
 - Tarjetas como en EB: miniatura, «¿Qué hay en esta foto?», **abrir** (ampliar), **girar** (↻ 90°, en navegador antes de guardar o regenerando en servidor), **borrar** (🗑 con confirmación) y asa de **arrastrar** (⠿).
 - **Ordenar**: arrastrar y soltar (HTML5 drag, o Pointer Events para táctil) **y** botones «subir/bajar» y «Hacer portada» (arrastrar en celular es poco confiable; los botones son la vía principal en móvil).
 - **Portada** marcada con insignia; «Quitar todas» pide confirmación escribiendo el ID.
@@ -165,6 +173,7 @@ Hoy: 10 términos de `amenidad` (los usados en filtros), el resto de caracterís
 
 ### 4.2 Relación con filtros y ficha
 - `filters.php` y `bh_active_filters()` (chips) leen **solo** términos con `bh_filtro = 1`, agrupados por `bh_cat` y ordenados por `bh_orden` (resultado en transient `bh_filter_terms`, se invalida al editar un término o la pantalla de características). Una característica `bh_filtro = 0` **no** genera chip ni opción, pero **sí** se muestra en la ficha.
+- **Admin**: la lista de propiedades (1.1) filtra por **todas** las características (`bh_filtro` 0 o 1); `bh_filtro` solo decide lo que ve el público.
 - Ficha: sección «Características» agrupada por categoría (como la vista de EB: Exterior, General, Recreación…), con los íconos de `bh_icono` si hay; hoy sale de `bh_features`. Después de la migración `bh_features`/`bh_features_full` se conservan sin editar (respaldo) y la ficha lee de los términos.
 - **Alta**: casillas agrupadas por categoría con buscador y «+ Agregar nueva» (solo administrador; el asesor ve las existentes). Convertir una característica en filtro es una casilla en la tabla: aparece en el catálogo sin tocar código.
 - Si una característica activa en filtros tiene muy pocas propiedades (< 3), la tabla lo avisa («el filtro devolverá casi nada»).
@@ -181,10 +190,10 @@ Hoy: 10 términos de `amenidad` (los usados en filtros), el resto de caracterís
 | **0 Respaldo y decisiones** | Respuestas a las preguntas de abajo; snapshot del VPS/sitio; confirmar espacio en disco. | — |
 | **1 Fotos (lo urgente)** | `upload_dir` + tamaños WebP, `bh_gallery`, `bh_prop()['images']` con respaldo a `bh_images`, alt automático, script `migrar-fotos` + verificación. Se puede correr **sin interfaz nueva** y reduce el riesgo más grande: perder fotos al cancelar EB. | 0 |
 | **2 Catálogo de características** | Pantalla Propiedades › Características, termmeta, siembra, filtros/chips y ficha leyendo de ahí. Independiente de la fase 3. | 0 |
-| **3 Asistente de 4 pasos** | Pasos 1–2 y 4 con generador `BH-`, guardado por REST, validaciones, completitud; luego paso 3 con subida, orden, portada, alt. Lista mejorada. | 1, 2 |
+| **3 Asistente de 2 pasos** | Pasos 1–2 y 4 con generador `BH-`, guardado por REST, validaciones, completitud; luego paso 3 con subida, orden, portada, alt. Lista mejorada. | 1, 2 |
 | **4 Ubicación privada/aproximada y mapa** | `bh_priv_lat/lng`, desplazamiento determinista, mapa del admin. | 3 |
 | **5 Corte de EasyBroker** | «Pasar a Best Home» por lotes (piloto → todas), apagar cron de sync y API, cancelar EB. | 1, 3 y 2 semanas de uso real |
-| **6 Extras** | Documentos públicos, duplicar propiedad, banderas por portal, formulario ligero para asesores en móvil (solo 1 y 3), precio editable en Verificación. | 3 |
+| **6 Extras** | Documentos públicos, duplicar propiedad, banderas por portal, formulario ligero para asesores en móvil (solo lo esencial y fotos), precio editable en Verificación. | 3 |
 
 Riesgos y mitigación:
 - **Perder fotos al cancelar EB** → fase 1 antes que todo; verificación automática; no cancelar hasta 0 URLs de EB en el HTML y un respaldo confirmado.
@@ -203,9 +212,11 @@ Riesgos y mitigación:
 3. **Una propiedad en venta y renta a la vez**: EB lo permite en una sola ficha; nosotros usamos una operación por propiedad (para duplicar una ficha con otro ID). ¿Te sirve así?
 4. **Renta temporal**: ¿se descarta?
 5. **Etiquetas libres de EB** (Home Office, Fracc con alberca): ¿las reemplazamos por características/etiqueta destacada, o las quieres como etiquetas internas de búsqueda?
-6. **Quién captura y desde dónde**: ¿solo tú y el equipo en computadora, o los asesores por celular? Si es celular, la fase 3 prioriza un formulario ligero (pasos 1 y 3).
+6. **Quién captura y desde dónde**: ¿solo tú y el equipo en computadora, o los asesores por celular? Si es celular, la fase 3 prioriza un formulario ligero (solo el paso 1 reducido y las fotos).
 7. **Límite de fotos**: ¿40 como EB, o menos (p. ej. 30) para cuidar disco y velocidad?
 8. **Ubicación pública**: ¿todas las propiedades «Aproximadas» por defecto (como ahora, círculo de 500 m)? ¿Alguna «Exacta» (desarrollos)?
 9. **Documentos públicos** (planos/brochure): ¿los quieres en la ficha ahora o después?
 10. **Corte con EasyBroker**: ¿hay fecha de renovación o cancelación? Eso fija el calendario de la fase 1 y 5. ¿Siguen publicando en portales (Inmuebles24, etc.) por EB? Si sí, hay que resolver ese envío antes de cancelar.
 11. **Texto alternativo**: ¿la regla `{descripción} - {tipo} en {operación} en {colonia, municipio} - {ID}` está bien, o prefieres sin guion y con ID antes?
+12. **Desarrollo / constructor**: ¿lo capturamos como campo privado aparte (`bh_priv_developer`) para buscar por él, o basta con el dueño y las etiquetas internas?
+13. **Etiquetas internas**: ¿taxonomía privada (recomendada, se renombran y cuentan) o texto libre por propiedad?

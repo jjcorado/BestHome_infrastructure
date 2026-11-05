@@ -3,7 +3,7 @@
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
 ## 2026-11-05
-- Nuevo `sitio-web/ALTA-PROPIEDADES.md`: diseño (sin implementar) de la independencia de EasyBroker: asistente de alta en 4 pasos, fotos propias (adjuntos de WordPress, máx. 40, WebP, alt automático), migración idempotente de fotos y «Pasar a Best Home» (`bh_source`), catálogo de características editable con «usar en filtros» y fases. Preguntas abiertas al final del documento.
+- Nuevo `sitio-web/ALTA-PROPIEDADES.md`: diseño (sin implementar) de la independencia de EasyBroker: asistente de alta en 4 pasos, fotos propias (adjuntos de WordPress, máx. 40, WebP, alt automático), migración idempotente de fotos y «Pasar a Best Home» (`bh_source`), catálogo de características editable con «usar en filtros» y fases. Preguntas abiertas al final del documento. Ajuste el mismo día: alta en 2 pasos (Información; Multimedia y publicación) y lista con panel de filtros avanzados (ubicación múltiple, todas las características, precio, m², recámaras, etiquetas internas, búsqueda por dueño, dirección o desarrollo).
 
 ## 2026-10-28
 - Estado de EspoCRM registrado en `PLAN-IMPLEMENTACION.md` sección D (hecho / sin confirmar / pendiente).
