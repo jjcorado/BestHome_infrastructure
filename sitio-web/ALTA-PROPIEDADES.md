@@ -39,8 +39,8 @@ El ID `BH-XX0000` se asigna **en el primer guardado** (así el slug `titulo-bh-x
 #### Paso 1 — Información (bloques A «Lo esencial», B «Detalles» y C «Características»)
 | Campo | Meta / destino | Oblig. | Validación |
 |---|---|---|---|
-| Tipo de propiedad | término `tipo_propiedad` | Sí | casa · departamento · terreno (ver pregunta sobre más tipos) |
-| Operación | término `operacion` + `bh_operation` | Sí | venta · renta (una sola por propiedad; ver pregunta) |
+| Tipo de propiedad | término `tipo_propiedad` | Sí | casa · departamento · terreno; **lista editable** (Propiedades › Tipos de propiedad: agregar, renombrar, ordenar) |
+| Operación | término `operacion` + `bh_operation` | Sí | venta · renta, **una por propiedad**; si se vende y renta, se **duplica** la propiedad (acción «Duplicar»). Sin renta temporal |
 | Título del anuncio | `post_title` | Sí | 20–110 caracteres; contador; sugerencia automática «{Tipo} en {operación} en {colonia}, {ciudad}» editable |
 | Descripción | `post_content` | Rec. (avisa) | mín. 150 caracteres para publicar sin advertencia; sin teléfonos, correos ni enlaces (alerta, no bloqueo) |
 | Precio | `bh_price` | Sí | número > 0; total (no por m²) |
@@ -70,7 +70,7 @@ Sugerencia de lógica (no obligatoria): si `bh_construction` > `bh_lot` en casa 
 - **Borrador** (`post_status = draft`) · **Publicada** (`publish` + `bh_visibility = publica`) · **Privada** (`publish` + `privada`; abre por URL con `noindex`, útil para compartir con un cliente) · **Archivada** (`archivada`; vendida o retirada, pide motivo opcional).
 - **No se puede publicar** sin: tipo, operación, título, precio (o «consultar»), moneda, zona/ubicación y **≥ 1 foto**. Con < 10 fotos o sin descripción se permite, con aviso.
 - Bloque **interno** (no público): descripción privada = `bh_priv_notes` (el equivalente a «Descripción privada» de EB, con dueño, modelo, comisión, historial de precio), dueño `bh_priv_owner_name` / `bh_priv_owner_phone`, comisión `bh_priv_commission`, OneDrive `bh_priv_onedrive`, fecha de verificación de precio.
-- **Etiquetas** de EB (casa, Juriquilla, Home Office…): **no** se replican como tal; ya existen términos de zona y características, y las etiquetas libres duplicarían filtros. Si se quieren notas de búsqueda internas, se usan en `bh_priv_notes`. (Pregunta abierta.)
+- **Etiquetas** de EB (casa, Juriquilla, Home Office…): **decidido: son las características**; no hay etiquetas libres; ya existen términos de zona y características, y las etiquetas libres duplicarían filtros. Si se quieren notas de búsqueda internas, se usan en `bh_priv_notes`. (Pregunta abierta.)
 - Mover de estado registra en el log de la propiedad (usuario y fecha), como ya hace `bh_archived_by`.
 
 ### 1.3 Ubicación y mapa (exacta vs aproximada)
@@ -94,7 +94,7 @@ Sugerencia de lógica (no obligatoria): si `bh_construction` > `bh_lot` en casa 
 - `bh_prop()['images']` devuelve primero `bh_gallery` (URLs `large`) y, si está vacía, cae a `bh_images` de EasyBroker → **compatible durante la migración** y sin tocar la sync. Hay que actualizar `bh_prop()`, `single-propiedad.php`, `property-card`, feed `g:image_link`, `ficha-print.php` y el JSON-LD para que lean de `bh_prop()` (cambio de tema, no de sync).
 
 ### 2.3 Límites y formato
-- **Máximo 40 fotos por propiedad** (igual que EB); **recomendado ≥ 10** (aviso, no bloqueo); mínimo 1 para publicar. 
+- **Sin límite duro**: aviso amarillo desde 50 fotos («ya son muchas, ¿seguro?») y tope técnico de 100 por propiedad; **recomendado ≥ 10** (aviso, no bloqueo); mínimo 1 para publicar. (EasyBroker permitía ~50.) 
 - Cada archivo: JPG, PNG, WebP o HEIC (iPhone) hasta **15 MB** al subir.
 - **El navegador reduce antes de subir** (canvas, vanilla JS): lado largo máx. **2560 px**, WebP calidad ~82 (JPEG si el navegador no soporta WebP), corrige orientación EXIF. Ahorra datos en el celular y evita límites de `upload_max_filesize`. HEIC que el navegador no pueda decodificar se sube tal cual y lo convierte el servidor (si Imagick lo soporta; si no, error claro «usa JPG»).
 - **Servidor**: genera solo `bh-card` (800×600 recorte), `large` (1600) y `bh-thumb` (400) en WebP; se desactivan los demás tamaños intermedios para esta carpeta. 
@@ -206,17 +206,39 @@ Riesgos y mitigación:
 - **Carga para el asesor** (CRM simple) → solo 7 obligatorios en el alta: tipo, operación, título, precio, moneda, zona y 1 foto.
 - Al cerrar cada fase: actualizar `CONTRATO-DATOS.md`, `PLUGIN.md`, `ARQUITECTURA.md`, `CAMBIOS.md` y subir `BH_THEME_VERSION` si se toca CSS/JS del tema.
 
-## 6. Preguntas abiertas para Javier
-1. **Asesor por propiedad**: ¿cada propiedad tiene asesor responsable (como «Sin asignar» de EB)? ¿Vive en el CRM o en el sitio?
-2. **Tipos de propiedad**: hoy solo casa, departamento y terreno. ¿Agregamos local, oficina, bodega, rancho?
-3. **Una propiedad en venta y renta a la vez**: EB lo permite en una sola ficha; nosotros usamos una operación por propiedad (para duplicar una ficha con otro ID). ¿Te sirve así?
-4. **Renta temporal**: ¿se descarta?
-5. **Etiquetas libres de EB** (Home Office, Fracc con alberca): ¿las reemplazamos por características/etiqueta destacada, o las quieres como etiquetas internas de búsqueda?
-6. **Quién captura y desde dónde**: ¿solo tú y el equipo en computadora, o los asesores por celular? Si es celular, la fase 3 prioriza un formulario ligero (solo el paso 1 reducido y las fotos).
-7. **Límite de fotos**: ¿40 como EB, o menos (p. ej. 30) para cuidar disco y velocidad?
-8. **Ubicación pública**: ¿todas las propiedades «Aproximadas» por defecto (como ahora, círculo de 500 m)? ¿Alguna «Exacta» (desarrollos)?
-9. **Documentos públicos** (planos/brochure): ¿los quieres en la ficha ahora o después?
-10. **Corte con EasyBroker**: ¿hay fecha de renovación o cancelación? Eso fija el calendario de la fase 1 y 5. ¿Siguen publicando en portales (Inmuebles24, etc.) por EB? Si sí, hay que resolver ese envío antes de cancelar.
-11. **Texto alternativo**: ¿la regla `{descripción} - {tipo} en {operación} en {colonia, municipio} - {ID}` está bien, o prefieres sin guion y con ID antes?
-12. **Desarrollo / constructor**: ¿lo capturamos como campo privado aparte (`bh_priv_developer`) para buscar por él, o basta con el dueño y las etiquetas internas?
-13. **Etiquetas internas**: ¿taxonomía privada (recomendada, se renombran y cuentan) o texto libre por propiedad?
+## 6. Decisiones de Javier (2026-11-05)
+- **Asesor por propiedad**: opcional; por defecto **sin asesor**. Se puede asignar (campo `bh_priv_asesor` = usuario WP, privado) para saber de quién es la casa en el tema de comisión. Filtro «Asesor» en la lista. No se publica teléfono por asesor.
+- **Tipos de propiedad**: casa, departamento y terreno (no se separa casa en condominio); como **tabla editable**.
+- **Venta y renta**: se duplica la propiedad. **Renta temporal**: no se usa.
+- **Etiquetas = características**: todo se maneja por características, en una tabla con **ID propio**, **categoría** (Amenidades, Exterior, General, Recreación, Políticas…) y editable (renombrar, agregar, agrupar) sin tocar código (sección 4). El nombre se muestra desde la tabla; el ID/slug no cambia al renombrar.
+- **Captura**: Javier da de alta casi todo, en computadora. Móvil: sobre todo **editar**; el formulario de alta móvil queda de baja prioridad.
+- **Asesores**: **solo ver y buscar** (no editan nada), con login, viendo datos exactos (sección 7).
+- **Fotos**: límite abierto con avisos (sección 2.3).
+- **Ubicación**: pública **aproximada por defecto**, con opción **exacta** por propiedad (exclusivas, terrenos). En el panel (admin y asesores) siempre se ve la **exacta**.
+- **Documentos**: no hay brochures ni documentos públicos. **Planos** = imágenes, pero **separadas de las fotos**: galería propia `bh_planos` (normalmente 2–3), con **pestaña «Planos»** en la ficha (junto a Fotos/Video/Recorrido 3D/Mapa) y su propio bloque en el paso 2. El bloque «Documentos públicos» (PDF) se descarta.
+- **Texto alternativo**: la regla acordada se queda. En planos: `Plano {n} - {Tipo} en {operación} en {colonia, municipio} - {ID}`.
+- **Desarrollo / constructor**: campo privado `bh_priv_developer`, **buscable**, con autocompletar.
+- **Portales**: no se publica en portales; solo el sitio.
+- **Corte con EasyBroker**: la renovación es 2026-11-06 y **no se renueva**. Migración de fotos y datos en los **3 días siguientes**.
+
+## 7. Vista de asesores (solo lectura, con login)
+Recomendación: **página privada en el sitio** (`/asesores/`), no el wp-admin, para que funcione bien en celular y sin exponer el panel.
+- Rol nuevo `bh_asesor` (capacidad propia `bh_ver_propiedades`; sin `edit_posts`). Entra por `wp-login.php`; al entrar se redirige a `/asesores/` y se les oculta la barra y el wp-admin. Solo el administrador crea usuarios y edita (propiedades, características, etiquetas, tipos).
+- La página es `noindex, nofollow`, sin caché (`DONOTCACHEPAGE`, `Cache-Control: private`), excluida del sitemap y con regla de Cloudflare para no cachearla. Sin sesión → login; sin rol → 403.
+- Misma búsqueda y panel de filtros que la lista del admin (sección 1.1; todas las características; búsqueda por dueño, dirección, desarrollo y etiquetas) pero de **solo lectura**.
+- Campos que ven (más que el público): ubicación exacta con mapa, dirección, desarrollo/constructor, dueño, comisión, notas internas, asesor asignado, clave de llave. **No ven** teléfono del dueño si Javier decide ocultarlo (opción por campo en Ajustes; pendiente confirmar).
+- Acciones: copiar enlace público, PDF con/sin marca, compartir por WhatsApp (el enlace de la ficha). Sin botones de edición.
+- Seguridad: cada consulta verifica el rol en el servidor (REST `besthome/v1/asesores/…`, nonce + `current_user_can('bh_ver_propiedades')`); los campos `bh_priv_*` solo salen por esta ruta y nunca por la REST pública, feeds ni webhooks. Registrar accesos (usuario, fecha) para auditoría.
+
+## 8. Calendario del corte (renovación 2026-11-06)
+- **Hoy (día 0)**: script de fotos listo (`includes/migrar-fotos.php`, ver 3.1). Correr «Propiedades › Migrar fotos» o `wp bh fotos migrar`; después `wp bh fotos verificar`. Mientras EB esté activo las URLs de `assets.easybroker.com` siguen vivas.
+- **Día 1–2**: revisar fotos en la ficha, el feed y el PDF; respaldo del sitio con `uploads/propiedades/`; probar con 3–5 propiedades «Pasar a Best Home».
+- **Día 3**: pasar todas a `propio`, apagar la sync y la clave API; confirmar que no quedan URLs de EB.
+- **Riesgo**: no se sabe cuánto tiempo conservan las URLs de EB tras vencer la cuenta → bajar las fotos **antes** de que venza, aunque el resto del plan tome más días.
+- **Al mover el sitio al VPS** (Fase 2): `bh_images` guarda URLs absolutas del sitio actual; hay que hacer `wp search-replace` del dominio (incluye arrays serializados) y copiar `uploads/propiedades/`.
+
+## 9. Preguntas que quedan
+1. Teléfono del dueño: ¿los asesores lo ven o solo tú y el administrador?
+2. `/asesores/` (página privada en el sitio, recomendada) o prefieres que entren al wp-admin con un menú reducido.
+3. ¿Quieres que «Pasar a Best Home» corra solo para todas al final de la migración, o propiedad por propiedad?
+4. Planos: ¿también deben salir en el feed de anuncios o solo en la ficha? (Recomendado: solo en la ficha.)
