@@ -286,13 +286,11 @@ Contexto: Javier mantendrá un plan **más bajo** de EasyBroker (≈10 propiedad
 - Lo que ya se migró **no hay que mover**: ya está donde debe. Los tamaños extra que WordPress hubiera creado antes de este script (si los hay) se pueden regenerar/borrar con un comando de limpieza (`wp bh fotos limpiar-tamanos`, por hacer) tras el corte.
 - Orden futuro opcional: conversión a WebP y CDN/R2 (sección 2).
 
-## 13. Redirecciones de URLs viejas de EasyBroker (decisión 2026-11-06)
-Problema: hay anuncios (sobre todo Google Ads) y enlaces con URLs viejas de EasyBroker. Javier las irá cambiando, pero las que queden deben llevar a **la misma casa** en el sitio nuevo; las que no se puedan mapear, a una página útil (catálogo).
-- **Captura** (hecho como herramienta, sin probar): `includes/redirecciones.php` en el plugin. «Propiedades › Redirecciones › Consultar URLs en EasyBroker» (o `wp bh urls capturar`) llama a la API por cada `EB-…` y guarda `public_url` en `bh_eb_public_url` y su ruta normalizada en `bh_old_url` (una fila por ruta). **Solo se puede capturar mientras la propiedad siga disponible en la API de EasyBroker (plan actual)**: correrlo ya. Si el campo no viene en la respuesta, la herramienta muestra qué claves devolvió la API para ajustar.
-- **Redirección 301** cuando la petición sería un 404: (a) ruta guardada exacta, (b) mapa manual (Javier pega `/ruta-vieja/ => EB-XF4820` o `=> /venta/casas/`), (c) el **ID** `EB-XX0000` dentro de la ruta (los slugs nuevos ya lo llevan al final), (d) prefijos típicos de EasyBroker (`listings`, `properties`…) → `/venta/` (o `/renta/` si la ruta dice renta). Conserva `utm_*`, `gclid` y demás parámetros.
-- **Revisión**: la misma pantalla lista las últimas URLs que llegaron al 404 con su destino, para ver qué anuncio viejo sigue activo y corregirlo en Google Ads. Probador de URLs incluido.
-- **Importante (dominio)**: esto solo sirve si las URLs viejas llegan a **este** WordPress. Si el dominio `besthomeqro.com` hoy apunta a un sitio alojado en EasyBroker, las redirecciones empiezan cuando el DNS cambie al VPS (Fase 2); ver [servidor/FASE2-MIGRACION.md](../servidor/FASE2-MIGRACION.md). Antes de ese cambio, **respaldar la lista de URLs viejas** (Search Console › Páginas, exportación de Google Ads, Screaming Frog sobre el sitio actual).
-- Pendiente: pedir a Javier 3 a 5 ejemplos de URLs viejas (de Google Ads) para afinar el patrón de ID y comprobar el campo de la API.
+## 13. URLs viejas de EasyBroker (corregido 2026-11-06)
+Las URLs que usa Javier en anuncios tienen la forma `https://www.easybroker.com/listings/{slug}` (ejemplos: `.../listings/casa-en-venta-en-zibata-excelente-diseno-7b9373ce-…`). Viven en el **dominio de EasyBroker**, no en besthomeqro.com, así que **no se pueden redirigir desde este sitio**: solo siguen funcionando mientras la propiedad esté publicada en EasyBroker. Además el slug no lleva el ID `EB-…`.
+- Por eso lo útil es un **mapa de reemplazo**: `includes/redirecciones.php` consulta cada propiedad en la API y guarda `public_url` (`bh_eb_public_url`); la pantalla **Propiedades › Redirecciones** descarga un **CSV «URL vieja → URL nueva»** (ID, título, URL vieja, URL nueva, visibilidad) para reemplazar masivamente los enlaces de Google Ads y de cualquier otro lugar. Hay que **correr la captura mientras la API devuelva las propiedades**.
+- El 301 del plugin (ruta guardada, mapa manual, ID en la ruta, prefijos de EasyBroker → catálogo) se conserva para el caso de que alguna URL antigua llegue al dominio propio (por ejemplo, rutas del sitio anterior de besthomeqro.com); registra lo que llega al 404 para revisarlo.
+- Para URLs de easybroker.com que se quieran conservar: tras cancelar, esas páginas desaparecen; solo queda **cambiar el anuncio**. Los anuncios de las propiedades históricas (plan bajo de EasyBroker, ≈10 activas) se revisan al activarlas.
 
 ## 14. Orden de implementación (acordado: «empezar los cambios»)
 1. **Hecho/entregado**: script de fotos (`migrar-fotos.php`) — Javier ya lo usó; herramienta de redirecciones (`redirecciones.php`) — por correr.
@@ -304,8 +302,24 @@ Problema: hay anuncios (sobre todo Google Ads) y enlaces con URLs viejas de Easy
 7. **Asistente de 2 pasos** con fotos y planos (secciones 1.2, 2 y 11).
 8. Ubicación aproximada/exacta (1.3).
 
-## 15. Preguntas que quedan
-1. Tres a cinco **URLs viejas de ejemplo** (de Google Ads o de Search Console) para probar las redirecciones.
-2. ¿`besthomeqro.com` hoy lo sirve EasyBroker (sitio web de EasyBroker)? Define cuándo empiezan a funcionar las redirecciones.
-3. ¿Quién es el gerente y qué cosas no debe ver (dueño, comisión) además de la configuración?
-4. ¿Empiezo con el paso 3 (roles y `/asesores/`)? Es lo siguiente de la lista.
+## 15. Usuarios del equipo (hecho como herramienta, 2026-11-06)
+`includes/roles.php` en el plugin (sin probar en Local aún):
+- **Propiedades › Usuarios del equipo**: solo el administrador crea usuarios (nombre, correo, rol); se envía un correo con enlace para que cada persona **fije su propia contraseña** (vence en 3 días); acciones: reenviar enlace, cambiar rol, desactivar/activar (cierra sus sesiones). Se ve el último acceso. El registro abierto de WordPress queda apagado, y la pantalla no puede dar ni quitar el rol de administrador.
+- **Propiedades › Roles y permisos**: matriz de casillas (permiso × rol) y «Crear rol» copiando otro. Roles base: **Gerente** y **Asesor**; Javier es el administrador. Permisos: ver propiedades, ver privados, mandar fichas, ver leads, editar, cambiar precio, publicar, catálogos, importar de EasyBroker.
+- Requiere que el **correo (SMTP) del sitio funcione** (viene en `bh-security.php`); probar el envío con un usuario de prueba.
+- Los permisos ya quedan registrados pero **todavía no controlan** la lista, la ficha PDF ni `/asesores/`: eso se aplica al construir la página de asesores (paso 3 del orden).
+
+## 16. Salida a producción (estado: todo en local, EasyBroker aún activo)
+Se prueba todo en local; el cambio al servidor se hace al final, con el dominio apuntando al VPS ([servidor/FASE2-MIGRACION.md](../servidor/FASE2-MIGRACION.md)). Lista de cosas propias de esta migración:
+1. Capturar las URLs de EasyBroker y descargar el CSV (mientras la API responda).
+2. Fotos migradas y verificadas; `uploads/propiedades/` incluido en la copia al VPS.
+3. Cambiar el dominio en la base: `wp search-replace` (URLs de `bh_images`, `bh_images_eb`, contenido) de `besthome.local` al dominio real; después guardar Ajustes › Enlaces permanentes.
+4. Pasar todas las propiedades a `bh_source = propio`; apagar los crons de la sync (queda el importador manual).
+5. Crear usuarios del equipo (el correo debe salir por el SMTP real) y revisar la matriz de permisos.
+6. Cambiar los enlaces de anuncios con el CSV (Google Ads) y verificar las redirecciones que lleguen al 404.
+7. Verificar que ninguna foto ni URL apunte a `assets.easybroker.com`, y el feed de anuncios.
+
+## 17. Preguntas que quedan
+1. ¿Quién es el gerente y qué no debe ver, además de la configuración? (Por defecto ve datos privados pero no cambia precio ni publica.)
+2. ¿Pasamos ahora todas las propiedades a «propias» o esperamos a salir a producción?
+3. ¿Sigo con el paso 3 (página `/asesores/` con búsqueda y fichas, que aplica los permisos)?

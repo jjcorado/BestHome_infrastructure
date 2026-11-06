@@ -7,6 +7,7 @@ Bitácora de cambios de **infraestructura y documentación** (los cambios de có
 - Decisiones de Javier registradas en `sitio-web/ALTA-PROPIEDADES.md` (secciones 6–9): asesor opcional, tipos y características como tablas editables, planos en galería aparte, ubicación aproximada por defecto, vista de asesores solo lectura con login, corte de EasyBroker el 2026-11-06. Script de migración de fotos `includes/migrar-fotos.php` entregado en el plugin (sin tocar sync.php ni api.php).
 - 2026-11-06: `ALTA-PROPIEDADES.md` secciones 9–13: roles (administrador, intermedio, asesor), importación manual desde EasyBroker por ID (plan bajo de EB, la sync deja de correr), planos con pestaña propia y organización de carpetas/tamaños de imagen.
 - 2026-11-06 (tarde): roles configurables (administrador, gerente, asesor) y matriz de permisos; sección de redirecciones de URLs viejas de EasyBroker (`includes/redirecciones.php` entregado en el plugin) y orden de implementación en `ALTA-PROPIEDADES.md`.
+- 2026-11-06 (noche): las URLs viejas son de easybroker.com (no redirigibles): el plugin exporta un CSV URL vieja → URL nueva para cambiar anuncios. Nuevo `includes/roles.php` (usuarios por invitación, roles y matriz de permisos). Secciones 13–17 de `ALTA-PROPIEDADES.md`, con lista de salida a producción.
 
 ## 2026-10-28
 - Estado de EspoCRM registrado en `PLAN-IMPLEMENTACION.md` sección D (hecho / sin confirmar / pendiente).
