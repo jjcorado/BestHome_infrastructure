@@ -237,8 +237,56 @@ Recomendación: **página privada en el sitio** (`/asesores/`), no el wp-admin, 
 - **Riesgo**: no se sabe cuánto tiempo conservan las URLs de EB tras vencer la cuenta → bajar las fotos **antes** de que venza, aunque el resto del plan tome más días.
 - **Al mover el sitio al VPS** (Fase 2): `bh_images` guarda URLs absolutas del sitio actual; hay que hacer `wp search-replace` del dominio (incluye arrays serializados) y copiar `uploads/propiedades/`.
 
-## 9. Preguntas que quedan
-1. Teléfono del dueño: ¿los asesores lo ven o solo tú y el administrador?
-2. `/asesores/` (página privada en el sitio, recomendada) o prefieres que entren al wp-admin con un menú reducido.
-3. ¿Quieres que «Pasar a Best Home» corra solo para todas al final de la migración, o propiedad por propiedad?
-4. Planos: ¿también deben salir en el feed de anuncios o solo en la ficha? (Recomendado: solo en la ficha.)
+## 9. Roles y permisos (decisión 2026-11-06)
+Cuatro roles. El login es el de **WordPress** (usuario y contraseña, con límite de intentos y Turnstile que ya existe en el sitio): los permisos por rol viven ahí. **Cloudflare Access** (código por correo, gratis hasta 50 usuarios) se puede poner **encima** solo de `/wp-admin` y `/wp-login.php` para administrador y gerente cuando el sitio esté en el VPS (Fase 2); para los asesores no se recomienda, porque sería un segundo login en cada celular. Empezar solo con el login de WordPress.
+
+| Capacidad | Administrador (Javier y gerente) | Intermedio (`bh_intermedio`) | Asesor (`bh_asesor`) |
+|---|---|---|---|
+| Buscar y ver propiedades (`/asesores/`, filtros, todas las características) | Sí | Sí | Sí |
+| Ver ubicación exacta, desarrollo/constructor | Sí | Sí | Sí |
+| Ver dueño, teléfono del dueño, comisión y notas internas (`bh_priv_*`) | Sí | Sí | **No** (solo la comisión de las propiedades que tiene asignadas) |
+| Copiar enlace, PDF, compartir | Sí | Sí | Sí |
+| Ver leads (`bh_view_leads`) | Sí | Sí | No |
+| Editar datos y fotos de propiedades | Sí | Sí (sin cambiar precio ni estado; configurable) | No |
+| Publicar, archivar, cambiar visibilidad | Sí | No | No |
+| Tabla de características, tipos, etiquetas | Sí | No | No |
+| Importar desde EasyBroker, pasar a propia | Sí | No | No |
+| Tema, plugins, ajustes, usuarios | Sí | No | No |
+
+- Capacidades propias (`bh_ver_propiedades`, `bh_ver_privados`, `bh_editar_propiedades`, `bh_publicar`, `bh_gestionar_catalogos`, `bh_importar_eb`); los roles personalizados **no** tienen `edit_posts` ni `upload_files` de WordPress, así que no pueden entrar a lo demás del wp-admin. Los permisos finos (por ejemplo, que el intermedio sí pueda cambiar el precio) se activan con casillas en una pantalla **Ajustes › Roles de Best Home**, sin tocar código.
+- El gerente es administrador de WordPress: activar verificación en dos pasos para administradores y confirmar `DISALLOW_FILE_EDIT` (editor de archivos desactivado) en `wp-config.php`.
+- Los asesores entran por `wp-login.php` y se redirigen a `/asesores/` (sección 7); cada consulta valida la capacidad en el servidor.
+
+## 10. Importar desde EasyBroker por ID (uso esporádico)
+Contexto: Javier mantendrá un plan **más bajo** de EasyBroker (≈10 propiedades activas) donde queda el historial. Si una propiedad antigua vuelve a venderse, se activa en EasyBroker y se **copia aquí** sin capturarla de nuevo. La sync continua (cron) deja de usarse; el plugin pasa a ser una **herramienta de importación manual**.
+
+- Pantalla **Propiedades › Importar de EasyBroker**: cuadro para uno o varios IDs (`EB-XF4820`) y botón «Importar». Solo administrador (`bh_importar_eb`). La clave API sigue configurada (`BH_EB_API_KEY`), pero **los crons `bh_eb_incremental_sync` y `bh_eb_full_sync` se apagan**.
+- Qué hace, reutilizando sin modificar `BH_EB_API::property()`, `BH_EB_Sync::map_detail()` y `BH_EB_Sync::upsert()`:
+  1. Consulta el detalle en EasyBroker (descripción, precio, operación, tipo, ubicación, características, video, tour y fotos).
+  2. **Si la propiedad ya existe en el sitio** (archivada o privada): muestra qué cambiaría (precio, descripción, fotos nuevas) y deja elegir **«Actualizar todo»** o **«Solo lo que falta»**; después la pone en **Pública** (`bh_visibility = publica`, `bh_archived_*` limpio). Como `upsert()` omite las propiedades `propio`, el importador cambia `bh_source` a `easybroker` solo durante la copia y la regresa a `propio` al terminar.
+  3. **Si no existe**: la crea con su mismo `EB-…` (permanente), zona y características mapeadas.
+  4. Descarga las fotos con el mismo código de migración (`BH_EB_Fotos::migrar()`), sin duplicar, y deja `bh_images` con URLs locales y `bh_gallery` en orden.
+  5. Deja `bh_source = propio`, así queda como cualquier otra propiedad propia y se edita en el sitio. Registra usuario, fecha y resultado en un log.
+- Notas: la API de EasyBroker puede no devolver propiedades **no publicadas**; por eso el flujo es «activar en EB → importar → editar aquí». Hay que **probarlo** con una propiedad archivada. Con el plan bajo, EasyBroker solo se usa para ese paso.
+- Cambios a `sync.php`/`api.php`: **ninguno**; solo se reutilizan sus funciones públicas.
+
+## 11. Planos separados de las fotos
+- Misma interfaz de visor, **pestaña propia «Planos»** en la ficha (Fotos · Video · Recorrido 3D · **Planos** · Mapa); solo aparece si la propiedad tiene planos.
+- Datos: `bh_planos` (IDs de adjunto en orden), independiente de `bh_gallery`. Cada adjunto lleva `bh_foto_tipo` = `foto` | `plano`.
+- Alta/edición (paso 2): dos bloques con el mismo control de subir, arrastrar y descripción: **Fotos** y **Planos**. Cada foto tiene el botón **«Mover a planos»** (y cada plano «Mover a fotos»), para pasar a planos las que hoy están mezcladas en el carrusel sin volver a subirlas.
+- Los planos **no** entran en `bh_images` (feed de anuncios, JSON-LD, tarjetas, PDF de ficha como galería); la ficha PDF puede imprimirlos en una página aparte. Alt: `Plano {n} - {Tipo} en {operación} en {colonia, municipio} - {ID}`.
+- Migración: la migración copia todas las fotos de EB como fotos; después Javier mueve a planos las que correspondan (suelen ser 2 o 3 por propiedad). Se puede ayudar con una vista «Revisar planos» que muestra la última foto de cada propiedad (los planos suelen ir al final) para moverlas rápido.
+- Cambio de tema pendiente: `bh_prop()['planos']`, pestaña y visor en `single-propiedad.php`, CSS y JS (vanilla). Subir `BH_THEME_VERSION`.
+
+## 12. Carpetas y tamaños de imagen
+- **`uploads/propiedades/{ID}/`** (lo que ya hace el script): el archivo original más sus versiones; todo junto, no hay que moverlo. Cada propiedad ≈ original (≤ 2560 px) + `-800x600` (tarjeta del catálogo) + `-1024` o `-1600` (`large`) + `-150x150` (miniatura del admin). Son pocos tamaños a propósito (el script desactiva el resto), porque WordPress por defecto genera 5 a 8 versiones de cada foto y llena el disco.
+- **Fotos y planos en la misma carpeta**: no se separan físicamente. La verdad es el dato `bh_foto_tipo` (y `bh_gallery` / `bh_planos`); mover archivos de carpeta rompería URLs sin ganar nada. Los planos nuevos se nombran `{id}-plano-01.jpg` para reconocerlos al verlos en el explorador.
+- **`uploads/bh-ficha/`**: es el caché de la ficha PDF; las fotos de casas que ves ahí son copias que se bajaron para imprimir (cuando las fotos estaban en EasyBroker). Es seguro borrarla; se regenera sola. Con las fotos ya locales, la ficha puede leer directamente de `uploads/propiedades/` y esa carpeta deja de crecer. Pendiente de confirmar al tocar `ficha-print.php`.
+- Lo que ya se migró **no hay que mover**: ya está donde debe. Los tamaños extra que WordPress hubiera creado antes de este script (si los hay) se pueden regenerar/borrar con un comando de limpieza (`wp bh fotos limpiar-tamanos`, por hacer) tras el corte.
+- Orden futuro opcional: conversión a WebP y CDN/R2 (sección 2).
+
+## 13. Preguntas que quedan
+1. ¿Confirmas los permisos de la tabla de roles (sección 9)? En especial: que el **intermedio** edite datos y fotos pero no precio ni publicar, y que el **asesor** no vea dueño ni comisión (salvo en sus propias propiedades).
+2. Importar de EasyBroker: ¿«Actualizar todo» por defecto o «solo lo que falta»?
+3. ¿Quién es el «intermedio»? (puesto o persona) para crear el usuario de prueba.
+4. ¿Al terminar la migración de fotos las pasamos todas a «propias» de una vez (recomendado, con el plan bajo de EB el cron ya no corre)?
