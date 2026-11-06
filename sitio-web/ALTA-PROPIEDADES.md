@@ -238,7 +238,7 @@ Recomendación: **página privada en el sitio** (`/asesores/`), no el wp-admin, 
 - **Al mover el sitio al VPS** (Fase 2): `bh_images` guarda URLs absolutas del sitio actual; hay que hacer `wp search-replace` del dominio (incluye arrays serializados) y copiar `uploads/propiedades/`.
 
 ## 9. Roles y permisos (decisión 2026-11-06)
-Cuatro roles. El login es el de **WordPress** (usuario y contraseña, con límite de intentos y Turnstile que ya existe en el sitio): los permisos por rol viven ahí. **Cloudflare Access** (código por correo, gratis hasta 50 usuarios) se puede poner **encima** solo de `/wp-admin` y `/wp-login.php` para administrador y gerente cuando el sitio esté en el VPS (Fase 2); para los asesores no se recomienda, porque sería un segundo login en cada celular. Empezar solo con el login de WordPress.
+**Actualización 2026-11-06**: el administrador de WordPress es solo Javier. El **gerente** tiene un rol propio (`bh_gerente`) con vista sencilla de propiedades y más permisos que el asesor, **sin** menús de configuración de WordPress. **La tabla de permisos es configurable**: pantalla **Ajustes › Roles de Best Home** con una matriz de casillas (filas = permisos, columnas = roles), y botón «Crear rol» (copia de uno existente) para roles nuevos. Los roles base son administrador, gerente y asesor. El login es el de **WordPress** (usuario y contraseña, con límite de intentos y Turnstile que ya existe en el sitio): los permisos por rol viven ahí. **Cloudflare Access** (código por correo, gratis hasta 50 usuarios) se puede poner **encima** solo de `/wp-admin` y `/wp-login.php` para administrador y gerente cuando el sitio esté en el VPS (Fase 2); para los asesores no se recomienda, porque sería un segundo login en cada celular. Empezar solo con el login de WordPress.
 
 | Capacidad | Administrador (Javier y gerente) | Intermedio (`bh_intermedio`) | Asesor (`bh_asesor`) |
 |---|---|---|---|
@@ -254,7 +254,8 @@ Cuatro roles. El login es el de **WordPress** (usuario y contraseña, con límit
 | Tema, plugins, ajustes, usuarios | Sí | No | No |
 
 - Capacidades propias (`bh_ver_propiedades`, `bh_ver_privados`, `bh_editar_propiedades`, `bh_publicar`, `bh_gestionar_catalogos`, `bh_importar_eb`); los roles personalizados **no** tienen `edit_posts` ni `upload_files` de WordPress, así que no pueden entrar a lo demás del wp-admin. Los permisos finos (por ejemplo, que el intermedio sí pueda cambiar el precio) se activan con casillas en una pantalla **Ajustes › Roles de Best Home**, sin tocar código.
-- El gerente es administrador de WordPress: activar verificación en dos pasos para administradores y confirmar `DISALLOW_FILE_EDIT` (editor de archivos desactivado) en `wp-config.php`.
+- Activar verificación en dos pasos para el administrador y confirmar `DISALLOW_FILE_EDIT` (editor de archivos desactivado) en `wp-config.php`.
+- Todos los roles con acceso a `/asesores/` (asesor y gerente) pueden **mandar fichas**: PDF con marca y sin marca, copiar enlace y compartir por WhatsApp; son permisos de la matriz (`bh_enviar_fichas`).
 - Los asesores entran por `wp-login.php` y se redirigen a `/asesores/` (sección 7); cada consulta valida la capacidad en el servidor.
 
 ## 10. Importar desde EasyBroker por ID (uso esporádico)
@@ -285,8 +286,26 @@ Contexto: Javier mantendrá un plan **más bajo** de EasyBroker (≈10 propiedad
 - Lo que ya se migró **no hay que mover**: ya está donde debe. Los tamaños extra que WordPress hubiera creado antes de este script (si los hay) se pueden regenerar/borrar con un comando de limpieza (`wp bh fotos limpiar-tamanos`, por hacer) tras el corte.
 - Orden futuro opcional: conversión a WebP y CDN/R2 (sección 2).
 
-## 13. Preguntas que quedan
-1. ¿Confirmas los permisos de la tabla de roles (sección 9)? En especial: que el **intermedio** edite datos y fotos pero no precio ni publicar, y que el **asesor** no vea dueño ni comisión (salvo en sus propias propiedades).
-2. Importar de EasyBroker: ¿«Actualizar todo» por defecto o «solo lo que falta»?
-3. ¿Quién es el «intermedio»? (puesto o persona) para crear el usuario de prueba.
-4. ¿Al terminar la migración de fotos las pasamos todas a «propias» de una vez (recomendado, con el plan bajo de EB el cron ya no corre)?
+## 13. Redirecciones de URLs viejas de EasyBroker (decisión 2026-11-06)
+Problema: hay anuncios (sobre todo Google Ads) y enlaces con URLs viejas de EasyBroker. Javier las irá cambiando, pero las que queden deben llevar a **la misma casa** en el sitio nuevo; las que no se puedan mapear, a una página útil (catálogo).
+- **Captura** (hecho como herramienta, sin probar): `includes/redirecciones.php` en el plugin. «Propiedades › Redirecciones › Consultar URLs en EasyBroker» (o `wp bh urls capturar`) llama a la API por cada `EB-…` y guarda `public_url` en `bh_eb_public_url` y su ruta normalizada en `bh_old_url` (una fila por ruta). **Solo se puede capturar mientras la propiedad siga disponible en la API de EasyBroker (plan actual)**: correrlo ya. Si el campo no viene en la respuesta, la herramienta muestra qué claves devolvió la API para ajustar.
+- **Redirección 301** cuando la petición sería un 404: (a) ruta guardada exacta, (b) mapa manual (Javier pega `/ruta-vieja/ => EB-XF4820` o `=> /venta/casas/`), (c) el **ID** `EB-XX0000` dentro de la ruta (los slugs nuevos ya lo llevan al final), (d) prefijos típicos de EasyBroker (`listings`, `properties`…) → `/venta/` (o `/renta/` si la ruta dice renta). Conserva `utm_*`, `gclid` y demás parámetros.
+- **Revisión**: la misma pantalla lista las últimas URLs que llegaron al 404 con su destino, para ver qué anuncio viejo sigue activo y corregirlo en Google Ads. Probador de URLs incluido.
+- **Importante (dominio)**: esto solo sirve si las URLs viejas llegan a **este** WordPress. Si el dominio `besthomeqro.com` hoy apunta a un sitio alojado en EasyBroker, las redirecciones empiezan cuando el DNS cambie al VPS (Fase 2); ver [servidor/FASE2-MIGRACION.md](../servidor/FASE2-MIGRACION.md). Antes de ese cambio, **respaldar la lista de URLs viejas** (Search Console › Páginas, exportación de Google Ads, Screaming Frog sobre el sitio actual).
+- Pendiente: pedir a Javier 3 a 5 ejemplos de URLs viejas (de Google Ads) para afinar el patrón de ID y comprobar el campo de la API.
+
+## 14. Orden de implementación (acordado: «empezar los cambios»)
+1. **Hecho/entregado**: script de fotos (`migrar-fotos.php`) — Javier ya lo usó; herramienta de redirecciones (`redirecciones.php`) — por correr.
+2. **Pasar todas a propias** (`bh_source = propio`) cuando las fotos estén verificadas; apagar los crons de sync (el importador manual queda).
+3. **Roles y permisos** (sección 9) y página `/asesores/` de solo lectura con búsqueda y fichas — es lo que más usa el equipo.
+4. **Lista de propiedades con filtros** (sección 1.1) para admin y gerente.
+5. **Catálogo de características editable** (sección 4) y tipos de propiedad.
+6. **Importador de EasyBroker por ID** (sección 10) — antes de reducir el plan de EasyBroker.
+7. **Asistente de 2 pasos** con fotos y planos (secciones 1.2, 2 y 11).
+8. Ubicación aproximada/exacta (1.3).
+
+## 15. Preguntas que quedan
+1. Tres a cinco **URLs viejas de ejemplo** (de Google Ads o de Search Console) para probar las redirecciones.
+2. ¿`besthomeqro.com` hoy lo sirve EasyBroker (sitio web de EasyBroker)? Define cuándo empiezan a funcionar las redirecciones.
+3. ¿Quién es el gerente y qué cosas no debe ver (dueño, comisión) además de la configuración?
+4. ¿Empiezo con el paso 3 (roles y `/asesores/`)? Es lo siguiente de la lista.
