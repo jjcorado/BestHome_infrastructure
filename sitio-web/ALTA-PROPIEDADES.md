@@ -305,6 +305,9 @@ Dos dominios distintos:
 7. **Asistente de 2 pasos** con fotos y planos (secciones 1.2, 2 y 11).
 8. Ubicación aproximada/exacta (1.3).
 
+## 14b. Página `/asesores/` (hecha, v1 sin probar)
+`includes/asesores.php`: página privada (login, `noindex`, sin caché) con búsqueda por texto, estado, operación, tipo, **zonas múltiples**, **todas las características**, precio, recámaras, baños y m²; tarjetas con acciones (ver ficha, copiar enlace, PDF con/sin marca, WhatsApp, ubicación). Datos internos (dirección, desarrollo, dueño, teléfono, comisión, notas) solo con `bh_ver_privados`; acciones de ficha solo con `bh_enviar_fichas`. Quien tiene rol del equipo sin `edit_posts` entra aquí tras el login y no ve el wp-admin. Pendiente: asesor asignado, editar desde aquí, filtros por todas las características de la tabla nueva, y ocultar la comisión ajena al asesor.
+
 ## 15. Usuarios del equipo (hecho como herramienta, 2026-11-06)
 `includes/roles.php` en el plugin (sin probar en Local aún):
 - **Propiedades › Usuarios del equipo**: solo el administrador crea usuarios (nombre, correo, rol); se envía un correo con enlace para que cada persona **fije su propia contraseña** (vence en 3 días); acciones: reenviar enlace, cambiar rol, desactivar/activar (cierra sus sesiones). Se ve el último acceso. El registro abierto de WordPress queda apagado, y la pantalla no puede dar ni quitar el rol de administrador.

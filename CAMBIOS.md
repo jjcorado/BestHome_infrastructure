@@ -9,6 +9,7 @@ Bitácora de cambios de **infraestructura y documentación** (los cambios de có
 - 2026-11-06 (tarde): roles configurables (administrador, gerente, asesor) y matriz de permisos; sección de redirecciones de URLs viejas de EasyBroker (`includes/redirecciones.php` entregado en el plugin) y orden de implementación en `ALTA-PROPIEDADES.md`.
 - 2026-11-06 (noche): las URLs viejas son de easybroker.com (no redirigibles): el plugin exporta un CSV URL vieja → URL nueva para cambiar anuncios. Nuevo `includes/roles.php` (usuarios por invitación, roles y matriz de permisos). Secciones 13–17 de `ALTA-PROPIEDADES.md`, con lista de salida a producción.
 - 2026-11-06 (noche 2): las URLs reales de anuncios son `besthomeqro.com/property/{slug}` (sitio alojado en EasyBroker, sí redirigible al cambiar el dominio); `redirecciones.php` las resuelve por slug de `public_url` o del título y el CSV trae esa columna.
+- 2026-11-06 (noche 3): nuevo `includes/asesores.php` (página privada `/asesores/`, solo lectura, con búsqueda y fichas) entregado en el plugin.
 
 ## 2026-10-28
 - Estado de EspoCRM registrado en `PLAN-IMPLEMENTACION.md` sección D (hecho / sin confirmar / pendiente).
