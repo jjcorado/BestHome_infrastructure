@@ -312,6 +312,7 @@ Dos dominios distintos:
 `includes/roles.php` en el plugin (sin probar en Local aún):
 - **Propiedades › Usuarios del equipo**: solo el administrador crea usuarios (nombre, correo, rol); se envía un correo con enlace para que cada persona **fije su propia contraseña** (vence en 3 días); acciones: reenviar enlace, cambiar rol, desactivar/activar (cierra sus sesiones). Se ve el último acceso. El registro abierto de WordPress queda apagado, y la pantalla no puede dar ni quitar el rol de administrador.
 - **Propiedades › Roles y permisos**: matriz de casillas (permiso × rol) y «Crear rol» copiando otro. Roles base: **Gerente** y **Asesor**; Javier es el administrador. Permisos: ver propiedades, ver privados, mandar fichas, ver leads, editar, cambiar precio, publicar, catálogos, importar de EasyBroker.
+- Si el correo no llega (Local no envía correo), la pantalla ofrece **«Ver enlace»** (válido 15 min) para mandarlo por WhatsApp. En el servidor sí hay que configurar el SMTP.
 - Requiere que el **correo (SMTP) del sitio funcione** (viene en `bh-security.php`); probar el envío con un usuario de prueba.
 - Los permisos ya quedan registrados pero **todavía no controlan** la lista, la ficha PDF ni `/asesores/`: eso se aplica al construir la página de asesores (paso 3 del orden).
 
