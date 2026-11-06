@@ -240,7 +240,7 @@ Recomendación: **página privada en el sitio** (`/asesores/`), no el wp-admin, 
 ## 9. Roles y permisos (decisión 2026-11-06)
 **Actualización 2026-11-06**: el administrador de WordPress es solo Javier. El **gerente** tiene un rol propio (`bh_gerente`) con vista sencilla de propiedades y más permisos que el asesor, **sin** menús de configuración de WordPress. **La tabla de permisos es configurable**: pantalla **Ajustes › Roles de Best Home** con una matriz de casillas (filas = permisos, columnas = roles), y botón «Crear rol» (copia de uno existente) para roles nuevos. Los roles base son administrador, gerente y asesor. El login es el de **WordPress** (usuario y contraseña, con límite de intentos y Turnstile que ya existe en el sitio): los permisos por rol viven ahí. **Cloudflare Access** (código por correo, gratis hasta 50 usuarios) se puede poner **encima** solo de `/wp-admin` y `/wp-login.php` para administrador y gerente cuando el sitio esté en el VPS (Fase 2); para los asesores no se recomienda, porque sería un segundo login en cada celular. Empezar solo con el login de WordPress.
 
-| Capacidad | Administrador (Javier y gerente) | Intermedio (`bh_intermedio`) | Asesor (`bh_asesor`) |
+| Capacidad | Administrador (solo Javier) | Gerente (`bh_gerente`, el «intermedio») | Asesor (`bh_asesor`) |
 |---|---|---|---|
 | Buscar y ver propiedades (`/asesores/`, filtros, todas las características) | Sí | Sí | Sí |
 | Ver ubicación exacta, desarrollo/constructor | Sí | Sí | Sí |
