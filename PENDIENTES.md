@@ -54,7 +54,11 @@ Checklist completo en [servidor/FASE2-MIGRACION.md](servidor/FASE2-MIGRACION.md)
 
 ---
 
-## Independencia de EasyBroker (sin fecha)
+## Independencia de EasyBroker (corte: renovación 2026-11-06, migración en 3 días)
+
+- [ ] **Urgente**: correr la migración de fotos (plugin `includes/migrar-fotos.php`: Propiedades › Migrar fotos o `wp bh fotos migrar`), verificar con `wp bh fotos verificar` y respaldar `uploads/propiedades/`.
+
+Diseño completo (pantallas, fotos, migración, características, fases y preguntas abiertas): [sitio-web/ALTA-PROPIEDADES.md](sitio-web/ALTA-PROPIEDADES.md). Orden propuesto: 1 fotos y migración → 2 catálogo de características → 3 asistente de 4 pasos → 4 ubicación aproximada → 5 corte de EasyBroker.
 
 - [ ] **Migrar fotos antes de cancelar EasyBroker** (hoy se sirven desde `assets.easybroker.com`; al cancelar desaparecen del sitio y del feed). Estructura: `uploads/propiedades/{ID}/`, adjuntos de WordPress, original máx. 2560 px.
 - [ ] Generador de ID propio `BH-XX0000` (aleatorio, único, sin I ni O), guardado en `bh_eb_id`.

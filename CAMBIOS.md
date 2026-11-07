@@ -2,6 +2,17 @@
 
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
+## 2026-11-05
+- Nuevo `sitio-web/ALTA-PROPIEDADES.md`: diseño (sin implementar) de la independencia de EasyBroker: asistente de alta en 4 pasos, fotos propias (adjuntos de WordPress, máx. 40, WebP, alt automático), migración idempotente de fotos y «Pasar a Best Home» (`bh_source`), catálogo de características editable con «usar en filtros» y fases. Preguntas abiertas al final del documento. Ajuste el mismo día: alta en 2 pasos (Información; Multimedia y publicación) y lista con panel de filtros avanzados (ubicación múltiple, todas las características, precio, m², recámaras, etiquetas internas, búsqueda por dueño, dirección o desarrollo).
+- Decisiones de Javier registradas en `sitio-web/ALTA-PROPIEDADES.md` (secciones 6–9): asesor opcional, tipos y características como tablas editables, planos en galería aparte, ubicación aproximada por defecto, vista de asesores solo lectura con login, corte de EasyBroker el 2026-11-06. Script de migración de fotos `includes/migrar-fotos.php` entregado en el plugin (sin tocar sync.php ni api.php).
+- 2026-11-06: `ALTA-PROPIEDADES.md` secciones 9–13: roles (administrador, intermedio, asesor), importación manual desde EasyBroker por ID (plan bajo de EB, la sync deja de correr), planos con pestaña propia y organización de carpetas/tamaños de imagen.
+- 2026-11-06 (tarde): roles configurables (administrador, gerente, asesor) y matriz de permisos; sección de redirecciones de URLs viejas de EasyBroker (`includes/redirecciones.php` entregado en el plugin) y orden de implementación en `ALTA-PROPIEDADES.md`.
+- 2026-11-06 (noche): las URLs viejas son de easybroker.com (no redirigibles): el plugin exporta un CSV URL vieja → URL nueva para cambiar anuncios. Nuevo `includes/roles.php` (usuarios por invitación, roles y matriz de permisos). Secciones 13–17 de `ALTA-PROPIEDADES.md`, con lista de salida a producción.
+- 2026-11-06 (noche 2): las URLs reales de anuncios son `besthomeqro.com/property/{slug}` (sitio alojado en EasyBroker, sí redirigible al cambiar el dominio); `redirecciones.php` las resuelve por slug de `public_url` o del título y el CSV trae esa columna.
+- 2026-11-06 (noche 3): nuevo `includes/asesores.php` (página privada `/asesores/`, solo lectura, con búsqueda y fichas) entregado en el plugin.
+- 2026-11-07: menú reorganizado en Propiedades › Equipo y Propiedades › Migración de EasyBroker (`includes/menu.php`); nueva pantalla «Pasar a propias» (`includes/propias.php`).
+- 2026-11-07: catálogo editable de características y tipos (`includes/caracteristicas.php`, rama `claude/alta-propiedades-sin-eb` del plugin); cambios del tema (filtros, ficha agrupada, `.fcat`) en el equipo de Javier pendientes de revisión visual.
+
 ## 2026-10-28
 - Estado de EspoCRM registrado en `PLAN-IMPLEMENTACION.md` sección D (hecho / sin confirmar / pendiente).
 - Plugin `besthome-eb-sync` (commit 701c951): B1 parámetro `eb_id` exacto, B2 precio real + `precio_visible`, B3 bloqueo de papelera/borrado de propiedades, B4 historial de precios (`bh_price_history`, `GET /precios`, acción `bh_price_changed`), B5 meta `bh_condition` (`condicion` en la API). Falta probar en el sitio; B6 pendiente de confirmar.
