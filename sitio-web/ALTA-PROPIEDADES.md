@@ -305,6 +305,9 @@ Dos dominios distintos:
 7. **Asistente de 2 pasos** con fotos y planos (secciones 1.2, 2 y 11).
 8. Ubicación aproximada/exacta (1.3).
 
+## 14a. Menú (decisión 2026-11-07)
+En Propiedades quedan: lo diario (lista, Añadir, Leads, Verificación de precios), **Equipo** (pestañas Usuarios y Roles y permisos) y **Migración de EasyBroker** (pestañas Fotos, URLs y redirecciones, Pasar a propias; luego Importar por ID). Archivo `includes/menu.php`; las pantallas son las mismas, solo agrupadas. Al terminar el corte se puede quitar la entrada de migración.
+
 ## 14b. Página `/asesores/` (hecha, v1 sin probar)
 `includes/asesores.php`: página privada (login, `noindex`, sin caché) con búsqueda por texto, estado, operación, tipo, **zonas múltiples**, **todas las características**, precio, recámaras, baños y m²; tarjetas con acciones (ver ficha, copiar enlace, PDF con/sin marca, WhatsApp, ubicación). Datos internos (dirección, desarrollo, dueño, teléfono, comisión, notas) solo con `bh_ver_privados`; acciones de ficha solo con `bh_enviar_fichas`. Quien tiene rol del equipo sin `edit_posts` entra aquí tras el login y no ve el wp-admin. Pendiente: asesor asignado, editar desde aquí, filtros por todas las características de la tabla nueva, y ocultar la comisión ajena al asesor.
 
