@@ -11,6 +11,7 @@ Bitácora de cambios de **infraestructura y documentación** (los cambios de có
 - 2026-11-06 (noche 2): las URLs reales de anuncios son `besthomeqro.com/property/{slug}` (sitio alojado en EasyBroker, sí redirigible al cambiar el dominio); `redirecciones.php` las resuelve por slug de `public_url` o del título y el CSV trae esa columna.
 - 2026-11-06 (noche 3): nuevo `includes/asesores.php` (página privada `/asesores/`, solo lectura, con búsqueda y fichas) entregado en el plugin.
 - 2026-11-07: menú reorganizado en Propiedades › Equipo y Propiedades › Migración de EasyBroker (`includes/menu.php`); nueva pantalla «Pasar a propias» (`includes/propias.php`).
+- 2026-11-07: catálogo editable de características y tipos (`includes/caracteristicas.php`, rama `claude/alta-propiedades-sin-eb` del plugin); cambios del tema (filtros, ficha agrupada, `.fcat`) en el equipo de Javier pendientes de revisión visual.
 
 ## 2026-10-28
 - Estado de EspoCRM registrado en `PLAN-IMPLEMENTACION.md` sección D (hecho / sin confirmar / pendiente).
