@@ -2,6 +2,15 @@
 
 Bitácora de cambios de **infraestructura y documentación** (los cambios de código viven en los repos del tema y del plugin). Más reciente arriba.
 
+## 2026-11-09 (GTM v3.0: conversiones estandarizadas)
+- GTM-TDXS7V6X publicado como v19 «v3.0 - Estandarización de conversiones (lead_generado único)»: un solo evento de conversión `lead_generado` con `lead_type` (`contacto` | `whatsapp`); `form_lead_attempt` y `modal_whatsapp_open` solo para audiencias. Nuevas variables (`DLV - lead_type`, `DLV - lead_id`, `JS - Lead Value`), activadores `CE - …` y etiquetas con la convención `Plataforma - Tipo - Qué`. Borradas las etiquetas GA4 Click WA y Lead Calificado Web. Detalle en `sitio-web/GTM.md`.
+- Valor de conversión: venta = precio/10,000, renta = precio/100, mínimo 50 MXN (50 si no hay precio); solo pesos.
+- Meta: evento estándar `Lead` con `eventID = lead_id` (deduplicación); `FormLeadAttempt` y `WhatsAppOpen` personalizados para audiencias.
+- Google Ads: conversiones nuevas por canal con etiqueta GTM; las anteriores (importadas de GA4) pasan a secundarias; algunas (collections, other engagement, website visits, YouTube channel) no permiten secundaria y quedan para revisar. GA4: dimensión `Lead Type`; nombres en inglés.
+- OpenAI Ads: eventos `lead_form` y `lead_whatsapp`; falta el píxel base (`oaiq is not defined`).
+- Formulario: dejaba de enviar con `form_error` `turnstile` porque faltaban `BH_TURNSTILE_SITE_KEY` y `BH_TURNSTILE_SECRET_KEY` en el `wp-config.php` del VPS (`leads.php` responde 403 sin token válido en producción). Se agregaron las dos constantes desde CloudPanel y se actualizaron los hostnames del widget en Cloudflare Turnstile. Nunca poner las claves en el repo ni en chats.
+- Los leads quedan en `pending` (HTTP 404 «Token not found») porque el webhook de Make no está configurado; se retoma con n8n (`BH_WEBHOOK_LEAD_URL`, ver `n8n/flujo-leads.md`).
+
 ## 2026-10-28
 - Estado de EspoCRM registrado en `PLAN-IMPLEMENTACION.md` sección D (hecho / sin confirmar / pendiente).
 - Plugin `besthome-eb-sync` (commit 701c951): B1 parámetro `eb_id` exacto, B2 precio real + `precio_visible`, B3 bloqueo de papelera/borrado de propiedades, B4 historial de precios (`bh_price_history`, `GET /precios`, acción `bh_price_changed`), B5 meta `bh_condition` (`condicion` en la API). Falta probar en el sitio; B6 pendiente de confirmar.
